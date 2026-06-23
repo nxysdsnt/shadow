@@ -1,0 +1,34 @@
+# 虚拟环境（最重要！）
+venv/
+.venv/
+env/
+ENV/
+
+# Python缓存文件
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE配置（每个人习惯不同）
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 日志和数据库文件
+*.log
+*.db
+*.sqlite3
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 其他临时文件
+*.tmp
+*.temp
