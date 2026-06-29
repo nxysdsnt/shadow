@@ -33,7 +33,7 @@ web浏览器（Chrome、Firefox、Edge等）
 # 1. 克隆项目
 git clone https://github.com/nxysdsnt/shadow.git
 # 2. 进入项目目录
-cd
+cd shadow
 # 3. 安装依赖
 pip install -r requirements.txt
 # 4. 启动Redis
