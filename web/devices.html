@@ -1,0 +1,2923 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设备控制</title>
+    <script src="device-data.js"></script>
+    <style>
+        /* ===== 所有样式完整保留 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #F5F0EB;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #FFFFFF;
+            border-radius: 32px;
+            padding: 28px 36px 36px;
+            box-shadow: 0 10px 40px rgba(44, 24, 16, 0.10);
+            min-height: 92vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #F0EBE5;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .back-btn {
+            background: #F5F0EB;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 30px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #2C1810;
+            font-weight: 500;
+            font-family: inherit;
+        }
+
+        .back-btn:hover {
+            background: #E8E0D8;
+        }
+
+        .header-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #2C1810;
+        }
+
+        .header-status {
+            font-size: 15px;
+            color: #7BA05B;
+            background: #F0F7EC;
+            padding: 8px 20px;
+            border-radius: 24px;
+            font-weight: 500;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 24px;
+            flex: 1;
+            margin-top: 20px;
+            min-height: 420px;
+        }
+
+        .room-sidebar {
+            flex: 0 0 150px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding-right: 16px;
+            border-right: 2px solid #F0EBE5;
+        }
+
+        .room-sidebar .sidebar-label {
+            font-size: 11px;
+            color: #C4B5A5;
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .room-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            font-weight: 500;
+            color: #8B7355;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .room-btn:hover {
+            background: #F5F0EB;
+            color: #2C1810;
+        }
+
+        .room-btn.active {
+            background: #2C1810;
+            color: #FFFFFF;
+            box-shadow: 0 4px 16px rgba(44, 24, 16, 0.18);
+        }
+
+        .room-btn .room-icon {
+            font-size: 18px;
+        }
+
+        .room-btn .room-badge {
+            margin-left: auto;
+            font-size: 11px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 2px 10px;
+            border-radius: 12px;
+        }
+
+        .room-btn.active .room-badge {
+            background: rgba(255, 255, 255, 0.20);
+        }
+
+        .room-btn:not(.active) .room-badge {
+            background: #F0EBE5;
+            color: #8B7355;
+        }
+
+        .device-list {
+            flex: 0 0 240px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .device-list .list-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2C1810;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #F0EBE5;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .device-list .list-header span {
+            color: #8B7355;
+            font-weight: 400;
+            font-size: 13px;
+        }
+
+        .device-list .list-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 4px;
+            margin-top: 8px;
+            max-height: 420px;
+        }
+
+        .device-list .list-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .device-list .list-scroll::-webkit-scrollbar-thumb {
+            background: #E0D6CC;
+            border-radius: 4px;
+        }
+
+        .device-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 4px;
+            border: 2px solid transparent;
+            font-family: inherit;
+        }
+
+        .device-item:hover {
+            background: #F5F0EB;
+        }
+
+        .device-item:active {
+            transform: scale(0.97);
+        }
+
+        .device-item.active {
+            background: #F0F7EC;
+            border-color: #7BA05B;
+        }
+
+        .device-item .dev-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .device-item .dev-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .device-item .dev-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #2C1810;
+        }
+
+        .device-item .dev-status {
+            font-size: 12px;
+        }
+
+        .device-item .dev-status .online {
+            color: #7BA05B;
+        }
+
+        .device-item .dev-status .offline {
+            color: #C4B5A5;
+        }
+
+        .device-item .dev-status .charging {
+            color: #D4A574;
+        }
+
+        .device-item .dev-status .locked {
+            color: #7BA05B;
+        }
+
+        .device-item .dev-extra {
+            font-size: 12px;
+            color: #8B7355;
+            flex-shrink: 0;
+        }
+
+        .device-item .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .device-item .status-dot.on {
+            background: #7BA05B;
+        }
+
+        .device-item .status-dot.off {
+            background: #D4C5B5;
+        }
+
+        .device-item .status-dot.charging {
+            background: #D4A574;
+        }
+
+        .device-item .status-dot.locked {
+            background: #7BA05B;
+        }
+
+        .scene-area {
+            flex: 1;
+            background: #F8F6F3;
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+            min-height: 380px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #F0EBE5;
+        }
+
+        .scene-area .scene-placeholder {
+            text-align: center;
+            color: #C4B5A5;
+        }
+
+        .scene-area .scene-placeholder .big-icon {
+            font-size: 64px;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .scene-area .scene-placeholder p {
+            font-size: 16px;
+        }
+
+        .scene-area .scene-placeholder .sub {
+            font-size: 12px;
+            color: #D4C5B5;
+            margin-top: 4px;
+        }
+
+        .scene-image-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: none;
+        }
+
+        .scene-image-container.show {
+            display: block;
+        }
+
+        .scene-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .scene-marker {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(44, 24, 16, 0.75);
+            backdrop-filter: blur(4px);
+            color: #FFFFFF;
+            font-size: 12px;
+            font-weight: 500;
+            border: 2px solid transparent;
+            transform: translate(-50%, -50%);
+            user-select: none;
+            white-space: nowrap;
+            font-family: inherit;
+            z-index: 10 !important;
+        }
+
+        .scene-marker:hover {
+            transform: translate(-50%, -50%) scale(1.08);
+            background: rgba(44, 24, 16, 0.90);
+        }
+
+        .scene-marker .marker-icon {
+            font-size: 20px;
+        }
+
+        .scene-marker .marker-name {
+            font-size: 10px;
+            opacity: 0.9;
+        }
+
+        .scene-marker.status-on {
+            border-color: #7BA05B;
+            box-shadow: 0 0 20px rgba(123, 160, 91, 0.30);
+        }
+
+        .scene-marker.status-off {
+            border-color: #8B7355;
+            opacity: 0.6;
+        }
+
+        .scene-marker.status-charging {
+            border-color: #D4A574;
+            box-shadow: 0 0 20px rgba(212, 165, 116, 0.30);
+        }
+
+        .scene-marker.status-locked {
+            border-color: #7BA05B;
+            box-shadow: 0 0 20px rgba(123, 160, 91, 0.30);
+        }
+
+        .scene-marker.highlight {
+            animation: markerPulse 0.8s ease 3;
+            border-color: #D4A574;
+            box-shadow: 0 0 40px rgba(212, 165, 116, 0.60);
+        }
+
+        @keyframes markerPulse {
+
+            0%,
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            50% {
+                transform: translate(-50%, -50%) scale(1.25);
+            }
+        }
+
+        .log-section {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 2px solid #F0EBE5;
+            flex-shrink: 0;
+        }
+
+        .log-section .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .log-section .log-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #2C1810;
+        }
+
+        .log-section .log-clear {
+            font-size: 13px;
+            color: #C4B5A5;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-family: inherit;
+        }
+
+        .log-section .log-clear:hover {
+            color: #8B7355;
+        }
+
+        .log-section .log-list {
+            max-height: 72px;
+            overflow-y: auto;
+            font-size: 14px;
+            color: #8B7355;
+            line-height: 1.9;
+        }
+
+        .log-section .log-list .log-item {
+            padding: 2px 0;
+            border-bottom: 1px solid #F5F0EB;
+        }
+
+        .log-section .log-list .log-item .time {
+            color: #C4B5A5;
+            margin-right: 12px;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(44, 24, 16, 0.40);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: #FFFFFF;
+            border-radius: 32px;
+            padding: 32px 36px 28px;
+            max-width: 440px;
+            width: 92%;
+            box-shadow: 0 30px 60px rgba(44, 24, 16, 0.30);
+            animation: modalIn 0.25s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                transform: scale(0.92) translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .modal .modal-header h2 {
+            font-size: 22px;
+            color: #2C1810;
+        }
+
+        .modal .modal-close {
+            background: #F5F0EB;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .modal .modal-close:hover {
+            background: #E8E0D8;
+        }
+
+        .modal .device-status-badge {
+            font-size: 14px;
+            padding: 4px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+
+        .modal .device-status-badge.on {
+            background: #F0F7EC;
+            color: #7BA05B;
+        }
+
+        .modal .device-status-badge.off {
+            background: #F5F0EB;
+            color: #C4B5A5;
+        }
+
+        .modal .control-group {
+            margin: 12px 0;
+        }
+
+        .modal .control-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #2C1810;
+            margin-bottom: 4px;
+        }
+
+        .modal .control-group input[type="range"] {
+            width: 100%;
+            accent-color: #2C1810;
+        }
+
+        .modal .control-group .range-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #D4A574;
+            text-align: center;
+            display: block;
+        }
+
+        .modal .btn-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+            flex-wrap: wrap;
+        }
+
+        .modal .btn-group .btn-option {
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: 2px solid #F0EBE5;
+            background: transparent;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            color: #2C1810;
+            font-family: inherit;
+        }
+
+        .modal .btn-group .btn-option:hover {
+            background: #F5F0EB;
+        }
+
+        .modal .btn-group .btn-option.active {
+            background: #2C1810;
+            color: #FFFFFF;
+            border-color: #2C1810;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .room-sidebar {
+                flex: 1;
+                flex-direction: row;
+                flex-wrap: wrap;
+                border-right: none;
+                border-bottom: 2px solid #F0EBE5;
+                padding-right: 0;
+                padding-bottom: 12px;
+                gap: 4px;
+            }
+
+            .room-sidebar .sidebar-label {
+                width: 100%;
+            }
+
+            .room-btn {
+                flex: 0 0 auto;
+                padding: 8px 16px;
+                font-size: 14px;
+                width: auto;
+            }
+
+            .device-list {
+                flex: 1;
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 8px;
+                padding-bottom: 8px;
+                border-bottom: 2px solid #F0EBE5;
+            }
+
+            .device-list .list-header {
+                width: 100%;
+                border-bottom: none;
+                padding-bottom: 4px;
+            }
+
+            .device-list .list-scroll {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+                max-height: none;
+                padding-right: 0;
+            }
+
+            .device-item {
+                flex: 0 0 auto;
+                padding: 6px 14px;
+                border-radius: 20px;
+                background: #F5F0EB;
+                margin-bottom: 0;
+            }
+
+            .device-item .dev-extra {
+                display: none;
+            }
+
+            .scene-area {
+                min-height: 280px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 8px;
+            }
+
+            .app-container {
+                padding: 12px 14px 20px;
+                border-radius: 16px;
+            }
+
+            .header-title {
+                font-size: 18px;
+            }
+
+            .back-btn {
+                padding: 6px 14px;
+                font-size: 13px;
+            }
+
+            .header-status {
+                font-size: 12px;
+                padding: 4px 12px;
+            }
+
+            .scene-area {
+                min-height: 200px;
+            }
+
+            .modal {
+                padding: 20px 16px;
+            }
+
+            .device-item {
+                padding: 4px 12px;
+                font-size: 13px;
+            }
+
+            .device-item .dev-icon {
+                font-size: 18px;
+            }
+
+            .scene-marker {
+                font-size: 10px;
+                padding: 2px 8px;
+            }
+
+            .scene-marker .marker-icon {
+                font-size: 16px;
+            }
+
+            .scene-marker .marker-name {
+                font-size: 8px;
+            }
+        }
+
+        @keyframes mistRise {
+            0% {
+                transform: translate(0, 0) scale(0.3);
+                opacity: 0;
+            }
+
+            15% {
+                opacity: 1;
+            }
+
+            85% {
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: translate(var(--drift), -150px) scale(2);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div class="header">
+            <div class="header-left">
+                <button class="back-btn" onclick="location.href='index.html'">← 返回</button>
+                <span class="header-title">🏠 设备控制</span>
+            </div>
+            <span class="header-status" id="totalStatus">⏳ 加载中...</span>
+        </div>
+        <div class="main-content">
+            <div class="room-sidebar" id="roomSidebar">
+                <div class="sidebar-label">📌 房间</div>
+            </div>
+            <div class="device-list" id="deviceList">
+                <div class="list-header">
+                    设备列表
+                    <span id="deviceCount">0 个</span>
+                </div>
+                <div class="list-scroll" id="deviceScroll"></div>
+            </div>
+            <div class="scene-area" id="sceneArea">
+                <div class="scene-placeholder" id="scenePlaceholder">
+                    <span class="big-icon">🏠</span>
+                    <p>选择房间查看场景图</p>
+                    <p class="sub">请将场景图放入 images/ 文件夹</p>
+                </div>
+                <div class="scene-image-container" id="sceneImageContainer">
+                    <img id="sceneImage" src="" alt="房间场景图">
+                    <div id="sceneMarkers"></div>
+                </div>
+            </div>
+        </div>
+        <div class="log-section">
+            <div class="log-header">
+                <span class="log-title">📋 操作日志</span>
+                <button class="log-clear" onclick="clearLogs()">清空</button>
+            </div>
+            <div class="log-list" id="logList">
+                <div class="log-item"><span class="time">--:--:--</span> 系统已启动</div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modalContent"></div>
+    </div>
+
+    <script>
+        // ================================================================
+        //  全局变量 & 场景配置
+        // ================================================================
+        let currentRoom = '客厅';
+        let selectedDeviceId = null;
+        let logs = ['系统已启动'];
+        let autoRefreshInterval = null;
+
+        const sceneConfig = {
+            '客厅': {
+                image: 'images/living_room.jpg',
+                markers: {
+                    'living_light1': { x: 30, y: 10 },
+                    'living_light2': { x: 70, y: 10 },
+                    'living_tv': { x: 65, y: 32 },
+                    'living_ac': { x: 45, y: 32 },
+                    'living_speaker': { x: 76, y: 70 },
+                    'living_vacuum': { x: 92, y: 70 },
+                    'living_curtain': { x: 10, y: 20 }
+                }
+            },
+            '厨房': {
+                image: 'images/kitchen.jpg',
+                markers: {
+                    'kitchen_dishwasher': { x: 17, y: 90 },
+                    'kitchen_hood': { x: 17, y: 17 },
+                    'kitchen_fridge': { x: 80, y: 40 },
+                    'kitchen_water': { x: 45, y: 17 },
+                    'kitchen_stove': { x: 10, y: 55 }
+                }
+            },
+            '卧室': {
+                image: 'images/bedroom.jpg',
+                markers: {
+                    'bedroom_ac': { x: 58, y: 25 },
+                    'bedroom_light': { x: 50, y: 7 },
+                    'bedroom_curtain': { x: 80, y: 40 },
+                    'bedroom_humidifier': { x: 80, y: 80 }
+                }
+            },
+            '玄关': {
+                image: 'images/entrance.jpg',
+                markers: {
+                    'entrance_lock': { x: 10, y: 40 },
+                    'entrance_light': { x: 55, y: 35 },
+                    'entrance_alarm': { x: 20, y: 20 }
+                }
+            },
+            '阳台': {
+                image: 'images/balcony.jpg',
+                markers: {
+                    'balcony_rack': { x: 35, y: 15 },
+                    'balcony_light': { x: 75, y: 10 }
+                }
+            }
+        };
+
+        const roomIcons = {
+            '客厅': '🏠',
+            '厨房': '🍳',
+            '卧室': '🛏',
+            '玄关': '🚪',
+            '阳台': '🌿'
+        };
+
+        // ================================================================
+        //  工具函数
+        // ================================================================
+        function getStatusInfo(device) {
+                // ===== 安防模式：在线/离线 + 模式名称 =====
+                if (device.id === 'entrance_alarm') {
+                    const statusMap = { 'disarmed': '🟢 撤防（在家模式）', 'armed': '🔴 布防（离家模式）', 'alarming': '🚨 报警中！' };
+                    const statusText = statusMap[device.power] || device.power || '未知状态';
+                    if (device.status === 'online') {
+                        return { text: `● 在线 ${statusText}`, cls: 'online' };
+                    } else {
+                        if (device.pending) {
+                            return { text: '📦 离线 待同步', cls: 'offline' };
+                        }
+                        return { text: '○ 离线', cls: 'offline' };
+                    }
+                }
+
+                // ===== 其他设备 =====
+                if (device.status === 'online') {
+                    if (device.power === 'on' || device.power === 'charging' || device.power === 'locked') {
+                        return { text: '● 在线 已开启', cls: 'online' };
+                    } else {
+                        return { text: '○ 在线 已关闭', cls: 'offline' };
+                    }
+                } else {
+                    if (device.pending) {
+                        return { text: '📦 离线 待同步', cls: 'offline' };
+                    }
+                    return { text: '○ 离线', cls: 'offline' };
+                }
+            }
+
+        function getDotClass(device) {
+            if (device.status === 'online') {
+                if (device.power === 'on' || device.power === 'charging' || device.power === 'locked') {
+                    return 'on';
+                }
+                return 'off';
+            }
+            return 'off';
+        }
+
+        function getMarkerClass(device) {
+            if (device.status === 'online') {
+                if (device.power === 'on' || device.power === 'charging' || device.power === 'locked') {
+                    return 'status-on';
+                }
+                return 'status-off';
+            }
+            return 'status-off';
+        }
+
+        function getExtra(device) {
+                // ===== 冰箱：不显示额外信息 =====
+                if (device.id === 'kitchen_fridge') {
+                    return '';
+                }
+
+                // ===== 空调：温度 + 模式 + 风速 =====
+                if (device.id === 'living_ac' || device.id === 'bedroom_ac') {
+                    let parts = [];
+                    if (device.temperature !== undefined && device.temperature !== null) {
+                        parts.push(`${device.temperature}°C`);
+                    }
+                    if (device.mode && device.mode !== null && device.mode !== '') {
+                        parts.push(device.mode);
+                    }
+                    if (device.fanSpeed !== undefined && device.fanSpeed !== null) {
+                        const fanMap = { 0: '自动', 1: '低', 2: '中', 3: '高' };
+                        parts.push(fanMap[device.fanSpeed] || `${device.fanSpeed}档`);
+                    }
+                    return parts.join(' ');
+                }
+
+                // ===== 电视 =====
+                if (device.id === 'living_tv' && device.volume !== undefined && device.volume !== null) {
+                    return `🔊${device.volume}%`;
+                }
+
+                // ===== 通用数值 =====
+                if (device.battery !== undefined && device.battery !== null) return `${device.battery}%`;
+                if (device.percent !== undefined && device.percent !== null) return `${device.percent}%`;
+                if (device.mistLevel !== undefined && device.mistLevel !== null) return `雾量${device.mistLevel}%`;
+                if (device.powerLevel !== undefined && device.powerLevel !== null) return `火力${device.powerLevel}%`;
+                if (device.fanSpeed !== undefined && device.fanSpeed !== null) {
+                    const fanMap = { 0: '自动', 1: '低', 2: '中', 3: '高' };
+                    return fanMap[device.fanSpeed] || `${device.fanSpeed}档`;
+                }
+                if (device.position !== undefined && device.position !== null) return `${device.position}%`;
+
+                // ===== 模式显示（音箱、扫地机器人、洗碗机） =====
+                if (device.id === 'living_speaker' && device.mode) {
+                    return device.mode;
+                }
+                if (device.id === 'living_vacuum' && device.mode) {
+                    return device.mode;
+                }
+                if (device.id === 'kitchen_dishwasher' && device.mode) {
+                    return device.mode;
+                }
+
+                return '';
+            }
+
+        // ================================================================
+        //  sendToBackend - 统一发送指令
+        // ================================================================
+        function sendToBackend(deviceId, command, value, callback) {
+                const commandData = {
+                    deviceId: deviceId,
+                    command: command,
+                    value: value,
+                    timestamp: new Date().toISOString()
+                };
+
+                fetch('http://127.0.0.1:5000/api/device/command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(commandData)
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log(`📤 ${deviceId} ${command}=${value} ->`, data);
+                        if (data.code === 0) {
+                            if (data.status === 'delivered') {
+                                addLog(`✅ ${deviceId} ${command}=${value} (已下发)`);
+                            } else if (data.status === 'cached') {
+                                addLog(`📦 ${deviceId} ${command}=${value} (已缓存)`);
+                            }
+                            if (callback) callback(true, data);
+                            // ===== 延时从 500 改成 1500，避免覆盖亮度 =====
+                            setTimeout(refreshDeviceStatus, 1500);
+                        } else {
+                            addLog(`❌ 指令失败: ${data.message}`);
+                            if (callback) callback(false, data);
+                        }
+                    })
+                    .catch(err => {
+                        console.log('📡 后端连接失败:', err);
+                        addLog(`⚠️ 后端连接失败`);
+                        if (callback) callback(false, { error: err.message });
+                    });
+            }
+
+        // ================================================================
+        //  refreshDeviceStatus - 从后端拉取最新状态（核心修复）
+        // ================================================================
+        function refreshDeviceStatus() {
+                fetch('http://127.0.0.1:5000/api/device/status')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.code === 0 && data.data) {
+                            let updated = false;
+                            for (const room in allDevices) {
+                                if (data.data[room]) {
+                                    data.data[room].forEach(backendDevice => {
+                                        const localDevice = allDevices[room].find(d => d.id === backendDevice.id);
+                                        if (localDevice) {
+                                            const oldStatus = localDevice.status;
+                                            const oldPower = localDevice.power;
+                                            const oldPending = localDevice.pending;
+                                            const oldMode = localDevice.mode;
+                                            const oldTemperature = localDevice.temperature;
+                                            const oldFreezerTemp = localDevice.freezerTemp;  // ← 新增
+                                            const oldVolume = localDevice.volume;
+                                            const oldBrightness = localDevice.brightness;
+                                            const oldFanSpeed = localDevice.fanSpeed;
+                                            const oldWindDirection = localDevice.windDirection;
+                                            const oldMistLevel = localDevice.mistLevel;
+                                            const oldPowerLevel = localDevice.powerLevel;
+                                            const oldPercent = localDevice.percent;
+                                            const oldPosition = localDevice.position;
+
+                                            // ===== 基础字段 =====
+                                            localDevice.status = backendDevice.status || 'offline';
+                                            localDevice.power = backendDevice.power;
+                                            localDevice.pending = backendDevice.pending || false;
+
+                                            // ===== 通用数值字段 =====
+                                            if (backendDevice.volume !== undefined && backendDevice.volume !== null) {
+                                                localDevice.volume = backendDevice.volume;
+                                            }
+                                            if (backendDevice.channel !== undefined && backendDevice.channel !== null) {
+                                                localDevice.channel = backendDevice.channel;
+                                            }
+                                            if (backendDevice.timer !== undefined && backendDevice.timer !== null) {
+                                                localDevice.timer = backendDevice.timer;
+                                            }
+                                            if (backendDevice.temperature !== undefined && backendDevice.temperature !== null) {
+                                                localDevice.temperature = backendDevice.temperature;
+                                            }
+                                            // ===== 新增：冰箱冷冻温度 =====
+                                            if (backendDevice.freezerTemp !== undefined && backendDevice.freezerTemp !== null) {
+                                                localDevice.freezerTemp = backendDevice.freezerTemp;
+                                            }
+                                            if (backendDevice.brightness !== undefined && backendDevice.brightness !== null) {
+                                                localDevice.brightness = backendDevice.brightness;
+                                            }
+                                            if (backendDevice.percent !== undefined && backendDevice.percent !== null) {
+                                                localDevice.percent = backendDevice.percent;
+                                            }
+                                            if (backendDevice.powerLevel !== undefined && backendDevice.powerLevel !== null) {
+                                                localDevice.powerLevel = backendDevice.powerLevel;
+                                            }
+                                            if (backendDevice.mistLevel !== undefined && backendDevice.mistLevel !== null) {
+                                                localDevice.mistLevel = backendDevice.mistLevel;
+                                            }
+                                            if (backendDevice.battery !== undefined && backendDevice.battery !== null) {
+                                                localDevice.battery = backendDevice.battery;
+                                            }
+                                            if (backendDevice.position !== undefined && backendDevice.position !== null) {
+                                                localDevice.position = backendDevice.position;
+                                            }
+                                            if (backendDevice.light !== undefined && backendDevice.light !== null) {
+                                                localDevice.light = backendDevice.light;
+                                            }
+                                            if (backendDevice.fanSpeed !== undefined && backendDevice.fanSpeed !== null) {
+                                                localDevice.fanSpeed = backendDevice.fanSpeed;
+                                            }
+                                            if (backendDevice.windDirection !== undefined && backendDevice.windDirection !== null) {
+                                                localDevice.windDirection = backendDevice.windDirection;
+                                            }
+
+                                            // ===== 模式字段：直接赋值，不判断 null =====
+                                            if (backendDevice.id === 'living_ac' || backendDevice.id === 'bedroom_ac') {
+                                                localDevice.mode = backendDevice.mode;
+                                                console.log(`🔄 空调 ${backendDevice.id} mode: ${localDevice.mode}`);
+                                            } else if (backendDevice.id === 'living_speaker') {
+                                                localDevice.mode = backendDevice.speaker_mode;
+                                                console.log(`🔄 音箱 mode: ${localDevice.mode}`);
+                                            } else if (backendDevice.id === 'living_vacuum') {
+                                                localDevice.mode = backendDevice.vacuum_mode;
+                                                console.log(`🔄 扫地机器人 mode: ${localDevice.mode}`);
+                                            } else if (backendDevice.id === 'kitchen_dishwasher') {
+                                                localDevice.mode = backendDevice.dishwasher_mode;
+                                                console.log(`🔄 洗碗机 mode: ${localDevice.mode}`);
+                                            } else if (backendDevice.id === 'kitchen_fridge') {
+                                                localDevice.mode = backendDevice.fridge_mode;
+                                                console.log(`🔄 冰箱 mode: ${localDevice.mode}`);
+                                            } else {
+                                                localDevice.mode = backendDevice.mode;
+                                            }
+
+                                            // ===== lock_state 和 alarm_state =====
+                                            if (backendDevice.lock_state !== undefined && backendDevice.lock_state !== null) {
+                                                localDevice.power = backendDevice.lock_state;
+                                            }
+                                            if (backendDevice.alarm_state !== undefined && backendDevice.alarm_state !== null) {
+                                                localDevice.power = backendDevice.alarm_state;
+                                            }
+
+                                            // 检查是否有任何字段变化
+                                            if (oldStatus !== localDevice.status ||
+                                                oldPower !== localDevice.power ||
+                                                oldPending !== localDevice.pending ||
+                                                oldMode !== localDevice.mode ||
+                                                oldTemperature !== localDevice.temperature ||
+                                                oldFreezerTemp !== localDevice.freezerTemp ||  // ← 新增
+                                                oldVolume !== localDevice.volume ||
+                                                oldBrightness !== localDevice.brightness ||
+                                                oldFanSpeed !== localDevice.fanSpeed ||
+                                                oldWindDirection !== localDevice.windDirection ||
+                                                oldMistLevel !== localDevice.mistLevel ||
+                                                oldPowerLevel !== localDevice.powerLevel ||
+                                                oldPercent !== localDevice.percent ||
+                                                oldPosition !== localDevice.position) {
+                                                updated = true;
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                            if (updated) {
+                                saveToStorage();
+                                console.log('✅ 设备状态已更新');
+                                renderUI();
+                                renderScene();
+                            }
+                        }
+                    })
+                    .catch(err => {
+                        console.log('📡 刷新状态失败，使用本地数据:', err);
+                        renderUI();
+                        renderScene();
+                    });
+            }
+        // ================================================================
+        //  渲染函数
+        // ================================================================
+        function renderUI() {
+                const sidebar = document.getElementById('roomSidebar');
+                const roomNames = Object.keys(allDevices);
+                sidebar.innerHTML = `
+        <div class="sidebar-label">📌 房间</div>
+        ${roomNames.map(room => `
+            <button class="room-btn ${room === currentRoom ? 'active' : ''}" onclick="switchRoom('${room}')">
+                <span class="room-icon">${roomIcons[room] || '🏠'}</span>
+                ${room}
+                <span class="room-badge">${allDevices[room].length}</span>
+            </button>
+        `).join('')}
+    `;
+
+                const devices = allDevices[currentRoom] || [];
+                const scroll = document.getElementById('deviceScroll');
+                document.getElementById('deviceCount').textContent = `${devices.length} 个`;
+
+                if (devices.length === 0) {
+                    scroll.innerHTML = `<p style="color:#C4B5A5;padding:20px;text-align:center;">暂无设备</p>`;
+                } else {
+                    scroll.innerHTML = devices.map(device => {
+                        const info = getStatusInfo(device);
+                        const extra = getExtra(device);
+                        const isActive = selectedDeviceId === device.id;
+                        const dotClass = getDotClass(device);
+                        const pendingMark = device.pending ? ' 📦' : '';
+                        return `
+                <div class="device-item ${isActive ? 'active' : ''}" onclick="selectDevice('${device.id}')">
+                    <span class="dev-icon">${device.icon}</span>
+                    <div class="dev-info">
+                        <div class="dev-name">${device.name}${pendingMark}</div>
+                        <div class="dev-status"><span class="${info.cls}">${info.text}</span></div>
+                    </div>
+                    ${extra ? `<span class="dev-extra">${extra}</span>` : ''}
+                    <span class="status-dot ${dotClass}"></span>
+                </div>
+            `;
+                    }).join('');
+                }
+
+                const online = getOnlineCount();
+                const total = getTotalCount();
+                const pendingCount = getAllDevicesList().filter(d => d.pending).length;
+                let statusText = `● ${online}/${total} 设备在线`;
+                if (pendingCount > 0) {
+                    statusText += ` 📦 ${pendingCount} 待同步`;
+                }
+                document.getElementById('totalStatus').textContent = statusText;
+
+                const logList = document.getElementById('logList');
+                logList.innerHTML = logs.map(log =>
+                    `<div class="log-item">${log}</div>`
+                ).join('');
+                logList.scrollTop = logList.scrollHeight;
+            }
+
+        // ================================================================
+        //  renderScene - 完整场景图渲染
+        // ================================================================
+        function renderScene() {
+                const container = document.getElementById('sceneImageContainer');
+                const placeholder = document.getElementById('scenePlaceholder');
+                const img = document.getElementById('sceneImage');
+                const markersDiv = document.getElementById('sceneMarkers');
+
+                const config = sceneConfig[currentRoom];
+                if (!config || !config.image) {
+                    placeholder.style.display = 'block';
+                    container.classList.remove('show');
+                    return;
+                }
+
+                placeholder.style.display = 'none';
+                container.classList.add('show');
+
+                // ===== 先显示加载状态 =====
+                markersDiv.innerHTML = '<div style="color:#C4B5A5;text-align:center;padding:40px;">加载场景图...</div>';
+
+                img.onload = function () {
+                    renderMarkers();
+                };
+                img.onerror = function () {
+                    placeholder.style.display = 'block';
+                    container.classList.remove('show');
+                    placeholder.innerHTML = `
+            <span class="big-icon">🖼️</span>
+            <p>图片加载失败</p>
+            <p class="sub">请将 ${config.image} 放入 images/ 文件夹</p>
+        `;
+                };
+                img.src = config.image;
+
+                // 如果图片已经缓存，立即渲染
+                if (img.complete && img.naturalWidth > 0) {
+                    renderMarkers();
+                }
+
+                function renderMarkers() {
+                    const devices = allDevices[currentRoom] || [];
+                    const markers = config.markers || {};
+
+                    const oldGlow = document.getElementById('lightGlowLayer');
+                    if (oldGlow) oldGlow.remove();
+
+                    const glowLayer = document.createElement('div');
+                    glowLayer.id = 'lightGlowLayer';
+                    glowLayer.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        `;
+
+                    let markersHTML = '';
+
+                    devices.forEach(device => {
+                        const pos = markers[device.id];
+                        if (!pos) return;
+
+                        const info = getStatusInfo(device);
+                        const extra = getExtra(device);
+                        const isActive = selectedDeviceId === device.id;
+
+                        const isLight = device.id === 'living_light1' || device.id === 'living_light2' ||
+                            device.id === 'bedroom_light' || device.id === 'entrance_light' ||
+                            device.id === 'balcony_light';
+                        const isTV = device.id === 'living_tv';
+                        const isAC = device.id === 'living_ac' || device.id === 'bedroom_ac';
+                        const isSpeaker = device.id === 'living_speaker';
+                        const isVacuum = device.id === 'living_vacuum';
+                        const isCurtain = device.id === 'living_curtain' || device.id === 'bedroom_curtain';
+                        const isDishwasher = device.id === 'kitchen_dishwasher';
+                        const isHood = device.id === 'kitchen_hood';
+                        const isFridge = device.id === 'kitchen_fridge';
+                        const isStove = device.id === 'kitchen_stove';
+                        const isHumidifier = device.id === 'bedroom_humidifier';
+                        const isLock = device.id === 'entrance_lock';
+                        const isAlarm = device.id === 'entrance_alarm';
+                        const isRack = device.id === 'balcony_rack';
+
+                        let lightStyle = '';
+                        let lightIcon = device.icon;
+                        let extraInfoHTML = '';
+
+                        // 灯
+                        if (isLight) {
+                            const brightness = device.brightness || 0;
+                            const glowIntensity = brightness / 100;
+                            const glowSize = 10 + glowIntensity * 30;
+                            const opacity = 0.3 + glowIntensity * 0.7;
+                            const isOn = device.power === 'on';
+                            const isPending = device.pending || false;
+                            const pendingMark = isPending ? ' 📦待同步' : '';
+                            lightStyle = `
+                    box-shadow: 0 0 ${glowSize}px rgba(255, 200, 50, ${opacity});
+                    background: rgba(255, 200, 50, ${opacity * 0.3});
+                    border-color: ${brightness > 50 ? '#FFD700' : '#8B7355'};
+                    ${isPending ? 'border-style: dashed;' : ''}
+                `;
+                            lightIcon = isOn ? '💡' : '⚪';
+                            extraInfoHTML = `<span style="font-size:10px;opacity:0.9;margin-top:2px;">${device.status === 'online' ? '在线' : '离线'}${pendingMark}</span>`;
+
+                            if (device.status === 'online' && brightness > 0) {
+                                const radius = 20 + glowIntensity * 60;
+                                const opacity2 = 0.15 + glowIntensity * 0.55;
+                                const glowDot = document.createElement('div');
+                                glowDot.style.cssText = `
+                        position: absolute;
+                        left: ${pos.x}%;
+                        top: ${pos.y}%;
+                        width: ${radius * 2}px;
+                        height: ${radius * 2}px;
+                        transform: translate(-50%, -50%);
+                        border-radius: 50%;
+                        background: radial-gradient(circle,
+                            rgba(255, 220, 80, ${opacity2}) 0%,
+                            rgba(255, 200, 50, ${opacity2 * 0.5}) 40%,
+                            rgba(255, 180, 30, 0) 80%
+                        );
+                        transition: all 0.5s ease;
+                        pointer-events: none;
+                        z-index: 1;
+                    `;
+                                glowLayer.appendChild(glowDot);
+                            }
+                        }
+
+                        // 电视
+                        if (isTV) {
+                            const isOn = device.power === 'on';
+                            const channel = device.channel || 1;
+                            const timer = device.timer || 0;
+                            const volume = device.volume || 0;
+                            let infoText = isOn ? `CH${channel}` : '关机';
+                            if (isOn && timer > 0) infoText += ` ⏱${timer}min`;
+                            if (isOn && volume > 0) infoText += ` 🔊${volume}%`;
+                            lightStyle = `
+                    background: ${isOn ? 'rgba(74, 144, 217, 0.25)' : 'rgba(26, 26, 46, 0.6)'};
+                    border-color: ${isOn ? '#4A90D9' : '#444'};
+                    box-shadow: ${isOn ? '0 0 30px rgba(74, 144, 217, 0.4)' : 'none'};
+                    min-width: 80px;
+                    padding: 6px 14px;
+                `;
+                            lightIcon = '📺';
+                            extraInfoHTML = `<span style="font-size:10px;opacity:0.9;margin-top:2px;">${infoText}</span>`;
+                        }
+
+                        // 空调
+                        if (isAC) {
+                            const isOn = device.power === 'on';
+                            const temp = device.temperature || 26;
+                            const mode = device.mode || '制冷';
+                            const fanMap = { 0: '自动', 1: '低', 2: '中', 3: '高' };
+                            const fan = fanMap[device.fanSpeed] || '中';
+                            const windDir = device.windDirection || '上下';
+                            const timer = device.timer || 0;
+                            let infoText = isOn ? `${temp}°C ${mode} ${fan} ${windDir}` : '已关机';
+                            if (isOn && timer > 0) infoText += ` ⏱${timer}min`;
+                            lightStyle = `
+                    background: ${isOn ? 'rgba(74, 144, 226, 0.2)' : 'rgba(26, 26, 46, 0.5)'};
+                    border-color: ${isOn ? '#4A90E2' : '#444'};
+                    box-shadow: ${isOn ? '0 0 20px rgba(74, 144, 226, 0.3)' : 'none'};
+                    min-width: 90px;
+                    padding: 6px 14px;
+                `;
+                            lightIcon = '❄️';
+                            extraInfoHTML = `<span style="font-size:10px;opacity:0.9;margin-top:2px;">${infoText}</span>`;
+                        }
+
+                        // 音箱
+                        if (isSpeaker) {
+                            const isOn = device.power === 'on';
+                            const volume = device.volume || 50;
+                            const mode = device.mode || '标准';
+                            let infoText = isOn ? `${volume}% ${mode}` : '已关机';
+                            lightStyle = `
+                    background: ${isOn ? 'rgba(255, 200, 50, 0.2)' : 'rgba(26, 26, 46, 0.5)'};
+                    border-color: ${isOn ? '#FFB800' : '#444'};
+                    box-shadow: ${isOn ? '0 0 20px rgba(255, 200, 50, 0.3)' : 'none'};
+                    min-width: 70px;
+                    padding: 6px 14px;
+                `;
+                            lightIcon = '🔊';
+                            extraInfoHTML = `<span style="font-size:10px;opacity:0.9;margin-top:2px;">${infoText}</span>`;
+                        }
+
+                        // 扫地机器人
+                        if (isVacuum) {
+                            const statusMap = { 'charging': '⚡充电中', 'cleaning': '🧹清扫中', 'idle': '⏸待机', 'off': '○已关机' };
+                            const statusText = statusMap[device.power] || device.power;
+                            const battery = device.battery || 80;
+                            let infoText = `${statusText} 🔋${battery}%`;
+                            if (device.mode && device.power !== 'off' && device.power !== 'charging') {
+                                infoText += ` ${device.mode}`;
+                            }
+                            lightStyle = `
+                    background: ${device.power === 'charging' ? 'rgba(212, 165, 116, 0.2)' :
+                                    device.power === 'cleaning' ? 'rgba(74, 144, 217, 0.2)' :
+                                        'rgba(26, 26, 46, 0.4)'};
+                    border-color: ${device.power === 'charging' ? '#D4A574' :
+                                    device.power === 'cleaning' ? '#4A90D9' : '#444'};
+                    box-shadow: ${device.power === 'charging' ? '0 0 20px rgba(212, 165, 116, 0.3)' :
+                                    device.power === 'cleaning' ? '0 0 20px rgba(74, 144, 217, 0.3)' : 'none'};
+                    min-width: 80px;
+                    padding: 6px 14px;
+                `;
+                            lightIcon = '🤖';
+                            extraInfoHTML = `<span style="font-size:10px;opacity:0.9;margin-top:2px;">${infoText}</span>`;
+                        }
+
+                        // 窗帘
+                        if (isCurtain) {
+                            const percent = device.percent || 0;
+                            const isOn = device.power === 'on';
+                            let infoText = isOn ? `开 ${percent}%` : '已关闭';
+                            const intensity = percent / 100;
+                            const bgOpacity = 0.1 + intensity * 0.25;
+                            lightStyle = `
+                    background: rgba(100, 180, 255, ${bgOpacity});
+                    border-color: ${isOn ? '#64B4FF' : '#444'};
+                    box-shadow: ${isOn ? `0 0 ${10 + intensity * 20}px rgba(100, 180, 255, ${0.1 + intensity * 0.3})` : 'none'};
+                    min-width: 60px;
+                    padding: 6px 14px;
+                `;
+                            lightIcon = '🪟';
+                            extraInfoHTML = `<span style="font-size:10px;opacity:0.9;margin-top:2px;">${infoText}</span>`;
+                        }
+
+                        // 洗碗机
+                        if (isDishwasher) {
+                            const progress = device.progress || 0;
+                            const isOn = device.power === 'on' || device.power === 'paused';
+                            const mode = device.mode || '标准';
+                            const timeRemaining = device.timeRemaining || 0;
+                            let statusText = device.power === 'on' ? '运行中' : device.power === 'paused' ? '已暂停' : '已关机';
+                            let infoText = isOn ? `${statusText} ${mode} ${progress}%` : '已关机';
+                            if (isOn && timeRemaining > 0 && device.power !== 'paused') {
+                                infoText += ` ⏱${timeRemaining}min`;
+                            }
+                            const borderColor = device.power === 'paused' ? '#FFB800' :
+                                device.power === 'on' ? '#4A90D9' : '#444';
+                            const bgColor = device.power === 'paused' ? 'rgba(255, 184, 0, 0.2)' :
+                                device.power === 'on' ? 'rgba(74, 144, 217, 0.2)' :
+                                    'rgba(26, 26, 46, 0.4)';
+                            lightStyle = `
+                    background: ${bgColor};
+                    border-color: ${borderColor};
+                    box-shadow: ${device.power !== 'off' ? `0 0 20px rgba(${device.power === 'paused' ? '255, 184, 0' : '74, 144, 217'}, 0.3)` : 'none'};
+                    min-width: 80px;
+                    padding: 6px 14px;
+                `;
+                            lightIcon = '🧼';
+                            extraInfoHTML = `<span style="font-size:10px;opacity:0.9;margin-top:2px;">${infoText}</span>`;
+                        }
+
+                        // 油烟机
+                        if (isHood) {
+                            const isOn = device.power === 'on';
+                            const fanMap = { 0: '关', 1: '低', 2: '中', 3: '高' };
+                            const fanText = fanMap[device.fanSpeed] || '关';
+                            const lightStatus = device.light ? '💡' : '';
+                            let statusText = isOn ? `${fanText}风` : '已关机';
+                            if (isOn && lightStatus) statusText += ` ${lightStatus}`;
+                            const intensity = (device.fanSpeed || 0) / 3;
+                            const glowSize = 10 + intensity * 25;
+                            const lightGlow = device.light ? 'rgba(255, 200, 100, 0.2)' : 'transparent';
+                            lightStyle = `
+                    background: ${isOn ? `rgba(200, 200, 220, ${0.1 + intensity * 0.25})` : 'rgba(26, 26, 46, 0.4)'};
+                    border-color: ${isOn ? `rgba(180, 180, 220, ${0.3 + intensity * 0.7})` : '#444'};
+                    box-shadow: ${isOn ? `0 0 ${glowSize}px rgba(180, 180, 220, ${0.1 + intensity * 0.3}), 0 0 ${glowSize * 0.5}px ${lightGlow}` : 'none'};
+                    min-width: 70px;
+                    padding: 6px 14px;
+                `;
+                            lightIcon = '💨';
+                            extraInfoHTML = `<span style="font-size:10px;opacity:0.9;margin-top:2px;">${statusText}</span>`;
+                        }
+
+                        // 冰箱
+                        if (isFridge) {
+                            const isOn = device.power === 'on';
+                            const temp = device.temperature || 4;
+                            const freezer = device.freezerTemp || -18;
+                            const mode = device.mode || '智能';
+                            let infoText = isOn ? `冷藏${temp}°C 冷冻${freezer}°C` : '已关机';
+                            if (isOn && mode) infoText += ` ${mode}`;
+                            const isQuickFreeze = mode === '速冻';
+                            const borderColor = isQuickFreeze ? '#4A90D9' : (isOn ? '#64B4FF' : '#444');
+                            const bgColor = isQuickFreeze ? 'rgba(74, 144, 217, 0.25)' :
+                                (isOn ? 'rgba(100, 180, 255, 0.15)' : 'rgba(26, 26, 46, 0.4)');
+                            lightStyle = `
+                    background: ${bgColor};
+                    border-color: ${borderColor};
+                    box-shadow: ${isOn ? `0 0 20px rgba(100, 180, 255, ${isQuickFreeze ? 0.4 : 0.2})` : 'none'};
+                    min-width: 100px;
+                    padding: 6px 14px;
+                `;
+                            lightIcon = '🧊';
+                            extraInfoHTML = `<span style="font-size:10px;opacity:0.9;margin-top:2px;">${infoText}</span>`;
+                        }
+
+                        // 灶台
+                        if (isStove) {
+                            const isOn = device.power === 'on';
+                            const power = device.powerLevel || 0;
+                            let infoText = isOn ? `${power}%` : '已关机';
+                            const intensity = power / 100;
+                            const r = 255;
+                            const g = Math.round(200 - intensity * 180);
+                            const b = Math.round(100 - intensity * 90);
+                            const glowSize = 10 + intensity * 50;
+                            lightStyle = `
+                    background: ${isOn ? `rgba(${r}, ${g}, ${b}, ${0.15 + intensity * 0.35})` : 'rgba(26, 26, 46, 0.4)'};
+                    border-color: ${isOn ? `rgb(${r}, ${g}, ${b})` : '#444'};
+                    box-shadow: ${isOn ? `0 0 ${glowSize}px rgba(255, ${g}, ${b}, ${0.2 + intensity * 0.4})` : 'none'};
+                    min-width: 60px;
+                    padding: 6px 14px;
+                `;
+                            lightIcon = '🍳';
+                            extraInfoHTML = `<span style="font-size:10px;opacity:0.9;margin-top:2px;">${infoText}</span>`;
+                        }
+
+                        // 加湿器
+                        if (isHumidifier) {
+                            const isOn = device.power === 'on';
+                            const mist = device.mistLevel || 0;
+                            let infoText = isOn ? `雾量${mist}%` : '已关机';
+                            lightStyle = `
+                    background: ${isOn ? 'rgba(200, 230, 255, 0.2)' : 'rgba(26, 26, 46, 0.4)'};
+                    border-color: ${isOn ? '#87CEEB' : '#444'};
+                    box-shadow: ${isOn ? `0 0 ${10 + mist / 10}px rgba(135, 206, 235, ${0.1 + mist / 200})` : 'none'};
+                    min-width: 70px;
+                    padding: 6px 14px;
+                `;
+                            lightIcon = '💨';
+                            extraInfoHTML = `<span style="font-size:10px;opacity:0.9;margin-top:2px;">${infoText}</span>`;
+                        }
+
+                        // 智能锁
+                        if (isLock) {
+                            const statusMap = { 'locked': '🔒已上锁', 'unlocked': '🔓已解锁' };
+                            const statusText = statusMap[device.power] || device.power;
+                            const battery = device.battery || 85;
+                            const colorMap = { 'locked': '#7BA05B', 'unlocked': '#4A90D9' };
+                            const borderColor = colorMap[device.power] || '#7BA05B';
+                            lightStyle = `
+                    background: rgba(44, 24, 16, 0.05);
+                    border-color: ${borderColor};
+                    box-shadow: 0 0 20px rgba(${device.power === 'locked' ? '123, 160, 91' : '74, 144, 217'}, 0.2);
+                    min-width: 70px;
+                    padding: 6px 14px;
+                `;
+                            lightIcon = device.power === 'locked' ? '🔒' : '🔓';
+                            extraInfoHTML = `<span style="font-size:10px;opacity:0.9;margin-top:2px;">${statusText} 🔋${battery}%</span>`;
+                        }
+
+                        // 安防模式
+                        if (isAlarm) {
+                            const statusMap = { 'disarmed': '🟢撤防', 'armed': '🔴布防', 'alarming': '🚨报警！' };
+                            const statusText = statusMap[device.power] || device.power;
+                            const colorMap = { 'disarmed': '#7BA05B', 'armed': '#E8744A', 'alarming': '#FF0000' };
+                            const borderColor = colorMap[device.power] || '#7BA05B';
+                            lightStyle = `
+                    background: rgba(44, 24, 16, 0.05);
+                    border-color: ${borderColor};
+                    box-shadow: 0 0 20px rgba(${device.power === 'disarmed' ? '123, 160, 91' :
+                                    device.power === 'armed' ? '232, 116, 74' :
+                                        '255, 0, 0'}, ${device.power === 'alarming' ? 0.6 : 0.2});
+                    min-width: 70px;
+                    padding: 6px 14px;
+                `;
+                            lightIcon = '🔔';
+                            extraInfoHTML = `<span style="font-size:10px;opacity:0.9;margin-top:2px;">${statusText}</span>`;
+                        }
+
+                        // 晾衣架
+                        if (isRack) {
+                            const pos = device.position || 50;
+                            const posText = pos === 0 ? '已升起' : pos === 100 ? '已降下' : `${pos}%`;
+                            const isMoving = device.isMoving ? '🔄运行' : '';
+                            const lightStatus = device.light ? '💡' : '';
+                            let infoText = `${posText}`;
+                            if (isMoving) infoText += ` ${isMoving}`;
+                            if (lightStatus) infoText += ` ${lightStatus}`;
+                            lightStyle = `
+                    background: ${device.light ? 'rgba(255, 200, 100, 0.15)' : 'rgba(44, 24, 16, 0.05)'};
+                    border-color: ${device.light ? '#FFB800' : '#8B7355'};
+                    box-shadow: ${device.light ? '0 0 25px rgba(255, 200, 100, 0.4)' : 'none'};
+                    min-width: 70px;
+                    padding: 6px 14px;
+                `;
+                            lightIcon = '👕';
+                            extraInfoHTML = `<span style="font-size:10px;opacity:0.9;margin-top:2px;">${infoText}</span>`;
+                        }
+
+                        markersHTML += `
+                <div class="scene-marker ${getMarkerClass(device)} ${isActive ? 'highlight' : ''}"
+                     style="left:${pos.x}%;top:${pos.y}%;${lightStyle}"
+                     onclick="selectDevice('${device.id}')"
+                     title="${device.name}: ${info.text}${extra ? ' ' + extra : ''}">
+                    <span class="marker-icon">${lightIcon}</span>
+                    <span class="marker-name">${device.name}</span>
+                    ${extraInfoHTML}
+                </div>
+            `;
+                    });
+
+                    markersDiv.innerHTML = markersHTML;
+
+                    // 加湿器水雾粒子效果
+                    const oldParticles = document.getElementById('mistParticlesLayer');
+                    if (oldParticles) oldParticles.remove();
+
+                    const humidifier = devices.find(d => d.id === 'bedroom_humidifier');
+                    if (humidifier && humidifier.status === 'online' && humidifier.power === 'on' && humidifier.mistLevel > 0) {
+                        const pos = markers[humidifier.id];
+                        if (pos) {
+                            const particlesLayer = document.createElement('div');
+                            particlesLayer.id = 'mistParticlesLayer';
+                            particlesLayer.style.cssText = `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    pointer-events: none;
+                    z-index: 2;
+                    overflow: hidden;
+                `;
+                            const container = document.getElementById('sceneImageContainer');
+                            container.appendChild(particlesLayer);
+                            const particleCount = Math.floor(humidifier.mistLevel / 100 * 30) + 5;
+                            const containerWidth = container.offsetWidth || 800;
+                            const containerHeight = container.offsetHeight || 400;
+                            const centerX = pos.x / 100 * containerWidth;
+                            const centerY = pos.y / 100 * containerHeight;
+                            for (let i = 0; i < particleCount; i++) {
+                                const particle = document.createElement('div');
+                                const size = 4 + Math.random() * 12;
+                                const angle = Math.random() * Math.PI * 2;
+                                const distance = 20 + Math.random() * 50;
+                                const duration = 2.5 + Math.random() * 3;
+                                const delay = Math.random() * 2.5;
+                                const opacity = 0.3 + Math.random() * 0.6;
+                                const drift = (Math.random() - 0.5) * 80;
+                                particle.style.cssText = `
+                        position: absolute;
+                        left: ${centerX + Math.cos(angle) * distance}px;
+                        top: ${centerY + Math.sin(angle) * distance}px;
+                        width: ${size}px;
+                        height: ${size}px;
+                        background: radial-gradient(circle, rgba(255, 255, 255, ${opacity}) 0%, rgba(200, 230, 255, 0) 70%);
+                        border-radius: 50%;
+                        pointer-events: none;
+                        --drift: ${drift}px;
+                        animation: mistRise ${duration}s ease-out infinite;
+                        animation-delay: ${delay}s;
+                        opacity: 0;
+                    `;
+                                particlesLayer.appendChild(particle);
+                            }
+                        }
+                    }
+
+                    const imageContainer = document.getElementById('sceneImageContainer');
+                    imageContainer.appendChild(glowLayer);
+                }
+            }
+
+        // ================================================================
+        //  用户操作函数
+        // ================================================================
+        function switchRoom(room) {
+            currentRoom = room;
+            selectedDeviceId = null;
+            addLog(`切换到「${room}」`);
+            renderUI();
+            renderScene();
+        }
+
+        function selectDevice(deviceId) {
+            selectedDeviceId = deviceId;
+            renderUI();
+            renderScene();
+            const allDevs = getAllDevicesList();
+            const device = allDevs.find(d => d.id === deviceId);
+            if (device) {
+                openModal(deviceId);
+            }
+        }
+
+        function addLog(message) {
+            const time = new Date().toLocaleTimeString();
+            logs.push(`<span class="time">${time}</span> ${message}`);
+            if (logs.length > 200) logs.shift();
+            renderUI();
+        }
+
+        function clearLogs() {
+            logs = ['日志已清空'];
+            renderUI();
+        }
+
+        // ================================================================
+        //  openModal - 完整设备控制弹窗
+        // ================================================================
+        function openModal(deviceId) {
+            const allDevs = getAllDevicesList();
+            const device = allDevs.find(d => d.id === deviceId);
+            if (!device) return;
+
+            selectedDeviceId = deviceId;
+            const overlay = document.getElementById('modalOverlay');
+            const content = document.getElementById('modalContent');
+            const info = getStatusInfo(device);
+
+            const isOnline = device.status === 'online';
+            const isPowerOn = device.power === 'on' || device.power === 'charging' || device.power === 'locked';
+
+            let controls = '';
+
+            // ===== 通用开关（安防模式除外） =====
+            if (device.id !== 'entrance_alarm') {
+                const isOnline = device.status === 'online';
+                const isPowerOn = device.power === 'on' || device.power === 'charging' || device.power === 'locked';
+                controls += `
+        <div class="control-group">
+            <label>开关</label>
+            <div class="btn-group">
+                <button class="btn-option ${(isOnline && isPowerOn) ? 'active' : ''}" onclick="quickControl('${device.id}','on')">开</button>
+                <button class="btn-option ${(isOnline && !isPowerOn) ? 'active' : ''}" onclick="quickControl('${device.id}','off')">关</button>
+            </div>
+        </div>
+    `;
+            }
+
+            const isLight = device.id === 'living_light1' || device.id === 'living_light2' ||
+                device.id === 'bedroom_light' || device.id === 'entrance_light' ||
+                device.id === 'balcony_light';
+
+            if (isLight) {
+                const brightness = device.brightness || 0;
+                controls += `
+                    <div class="control-group">
+                        <label>亮度：<span class="range-value" id="brightnessDisplay">${brightness}%</span></label>
+                        <input type="range" min="0" max="100" value="${brightness}"
+                               oninput="document.getElementById('brightnessDisplay').textContent=this.value+'%'; 
+                                        document.getElementById('brightnessVal').value=this.value;
+                                        updateLightPreview(this.value)"
+                               onchange="sendSliderValue('${device.id}', 'set_brightness', this.value)">
+                        <input type="hidden" id="brightnessVal" value="${brightness}">
+                    </div>
+                `;
+            }
+
+            // 电视
+            if (device.id === 'living_tv') {
+                const volume = device.volume || 50;
+                const channel = device.channel || 1;
+                const timer = device.timer || 0;
+                controls += `
+                    <div class="control-group">
+                        <label>音量：<span id="tvVolumeDisplay">${volume}%</span></label>
+                        <input type="range" id="tvVolumeSlider" min="0" max="100" value="${volume}"
+                               oninput="document.getElementById('tvVolumeDisplay').textContent=this.value+'%'; document.getElementById('tvVolumeVal').value=this.value;"
+                               onchange="sendSliderValue('${device.id}', 'set_volume', this.value)">
+                        <input type="hidden" id="tvVolumeVal" value="${volume}">
+                    </div>
+                    <div class="control-group">
+                        <label>频道：<span id="tvChannelDisplay">${channel}</span></label>
+                        <div style="display:flex;gap:10px;margin-top:6px;">
+                            <button class="btn-option" onclick="changeChannelAndSend('${device.id}', -1)">− 减</button>
+                            <input type="number" id="tvChannelInput" value="${channel}" min="1" max="999"
+                                   oninput="document.getElementById('tvChannelDisplay').textContent=this.value;"
+                                   style="width:80px;text-align:center;border:2px solid #F0EBE5;border-radius:12px;padding:6px;font-size:16px;">
+                            <button class="btn-option" onclick="changeChannelAndSend('${device.id}', 1)">加 +</button>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>定时关机</label>
+                        <div class="btn-group">
+                            <button class="btn-option timer-btn ${timer === 0 ? 'active' : ''}" data-timer="0" onclick="setTimerAndSend('${device.id}', 0)">关闭</button>
+                            <button class="btn-option timer-btn ${timer === 30 ? 'active' : ''}" data-timer="30" onclick="setTimerAndSend('${device.id}', 30)">30min</button>
+                            <button class="btn-option timer-btn ${timer === 60 ? 'active' : ''}" data-timer="60" onclick="setTimerAndSend('${device.id}', 60)">60min</button>
+                            <button class="btn-option timer-btn ${timer === 90 ? 'active' : ''}" data-timer="90" onclick="setTimerAndSend('${device.id}', 90)">90min</button>
+                        </div>
+                        <input type="hidden" id="tvTimerVal" value="${timer}">
+                    </div>
+                `;
+            }
+
+            // 空调
+            if (device.id === 'living_ac' || device.id === 'bedroom_ac') {
+                controls += `
+                    <div class="control-group">
+                        <label>温度：<span id="acTempDisplay">${device.temperature}°C</span></label>
+                        <input type="range" min="16" max="30" value="${device.temperature}"
+                               oninput="document.getElementById('acTempDisplay').textContent=this.value+'°C'; document.getElementById('acTempVal').value=this.value;"
+                               onchange="sendSliderValue('${device.id}', 'set_temperature', this.value)">
+                        <input type="hidden" id="acTempVal" value="${device.temperature}">
+                    </div>
+                    <div class="control-group">
+                        <label>模式</label>
+                        <div class="btn-group">
+                            ${['制冷', '制热', '送风', '除湿', '自动'].map(m => `
+                                <button class="btn-option ${m === device.mode ? 'active' : ''}" onclick="quickControl('${device.id}','mode','${m}')">${m}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>风速</label>
+                        <div class="btn-group">
+                            ${[{ val: 0, label: '自动' }, { val: 1, label: '低' }, { val: 2, label: '中' }, { val: 3, label: '高' }].map(f => `
+                                <button class="btn-option ${f.val === device.fanSpeed ? 'active' : ''}" onclick="setAcFanSpeedAndSend('${device.id}', ${f.val})">${f.label}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>风向</label>
+                        <div class="btn-group">
+                            ${['上下', '左右', '关闭'].map(d => `
+                                <button class="btn-option ${d === device.windDirection ? 'active' : ''}" onclick="setAcWindDirectionAndSend('${device.id}', '${d}')">${d}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>定时关机</label>
+                        <div class="btn-group">
+                            ${[{ val: 0, label: '关闭' }, { val: 30, label: '30min' }, { val: 60, label: '60min' }, { val: 90, label: '90min' }].map(t => `
+                                <button class="btn-option ${t.val === device.timer ? 'active' : ''}" onclick="setAcTimerAndSend('${device.id}', ${t.val})">${t.label}</button>
+                            `).join('')}
+                        </div>
+                        <input type="hidden" id="acTimerVal" value="${device.timer || 0}">
+                    </div>
+                `;
+            }
+
+            // 音箱
+            if (device.id === 'living_speaker') {
+                const volume = device.volume || 50;
+                controls += `
+                    <div class="control-group">
+                        <label>音量：<span id="speakerVolumeDisplay">${volume}%</span></label>
+                        <input type="range" min="0" max="100" value="${volume}"
+                               oninput="document.getElementById('speakerVolumeDisplay').textContent=this.value+'%'; document.getElementById('speakerVolumeVal').value=this.value;"
+                               onchange="sendSliderValue('${device.id}', 'set_volume', this.value)">
+                        <input type="hidden" id="speakerVolumeVal" value="${volume}">
+                    </div>
+                    <div class="control-group">
+                        <label>音效模式</label>
+                        <div class="btn-group">
+                            ${['标准', '流行', '摇滚', '古典', '爵士'].map(m => `
+                                <button class="btn-option ${m === device.mode ? 'active' : ''}" onclick="setSpeakerModeAndSend('${device.id}', '${m}')">${m}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 扫地机器人
+            if (device.id === 'living_vacuum') {
+                controls += `
+                    <div class="control-group">
+                        <label>状态</label>
+                        <div style="display:flex;gap:10px;align-items:center;padding:4px 0;">
+                            <span style="font-size:14px;font-weight:500;color:#2C1810;">
+                                ${device.power === 'charging' ? '⚡ 充电中' :
+                        device.power === 'cleaning' ? '🧹 清扫中' :
+                            device.power === 'idle' ? '⏸ 待机中' : '○ 已关机'}
+                            </span>
+                            <span style="font-size:13px;color:#8B7355;">🔋 ${device.battery}%</span>
+                        </div>
+                        <div style="width:100%;height:6px;background:#F0EBE5;border-radius:4px;margin-top:4px;">
+                            <div style="width:${device.battery}%;height:100%;background:#7BA05B;border-radius:4px;transition:width 0.5s;"></div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>清扫模式</label>
+                        <div class="btn-group">
+                            ${['自动', '强力', '安静', '拖地'].map(m => `
+                                <button class="btn-option ${m === device.mode ? 'active' : ''}" onclick="setVacuumModeAndSend('${device.id}', '${m}')">${m}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 窗帘
+            if (device.id === 'living_curtain' || device.id === 'bedroom_curtain') {
+                const pos = device.percent || 0;
+                controls += `
+                    <div class="control-group">
+                        <label>开合度：<span id="curtainPercentDisplay">${pos}%</span></label>
+                        <input type="range" min="0" max="100" value="${pos}"
+                               oninput="document.getElementById('curtainPercentDisplay').textContent=this.value+'%'; 
+                                        document.getElementById('curtainPercentVal').value=this.value;
+                                        previewCurtainPercent(this.value)"
+                               onchange="sendSliderValue('${device.id}', 'set_percent', this.value)">
+                        <input type="hidden" id="curtainPercentVal" value="${pos}">
+                    </div>
+                    <div class="control-group">
+                        <label>快捷操作</label>
+                        <div class="btn-group">
+                            <button class="btn-option" onclick="setCurtainPercentAndSend('${device.id}', 0)">全关</button>
+                            <button class="btn-option" onclick="setCurtainPercentAndSend('${device.id}', 50)">半开</button>
+                            <button class="btn-option" onclick="setCurtainPercentAndSend('${device.id}', 100)">全开</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 洗碗机
+            if (device.id === 'kitchen_dishwasher') {
+                controls += `
+                    <div class="control-group">
+                        <label>状态</label>
+                        <div style="display:flex;gap:10px;align-items:center;padding:4px 0;">
+                            <span style="font-size:14px;font-weight:500;color:#2C1810;">
+                                ${device.power === 'on' ? '🔄 运行中' : '⏹ 已关机'}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>洗涤模式</label>
+                        <div class="btn-group">
+                            ${['标准', '强力', '节能', '快速', '玻璃', '杀菌'].map(m => `
+                                <button class="btn-option ${m === device.mode ? 'active' : ''}" onclick="setDishwasherModeAndSend('${device.id}', '${m}')">${m}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>控制</label>
+                        <div class="btn-group">
+                            <button class="btn-option ${device.power === 'on' ? 'active' : ''}" onclick="controlDishwasherAndSend('${device.id}', 'start')">▶ 开始</button>
+                            <button class="btn-option" onclick="controlDishwasherAndSend('${device.id}', 'stop')">⏹ 停止</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 油烟机
+            if (device.id === 'kitchen_hood') {
+                const fanMap = { 0: '关闭', 1: '低', 2: '中', 3: '高' };
+                controls = `
+                    <div class="control-group">
+                        <label>开关</label>
+                        <div class="btn-group">
+                            <button class="btn-option ${device.power === 'on' ? 'active' : ''}" onclick="controlHoodAndSend('${device.id}', 'on')">开机</button>
+                            <button class="btn-option ${device.power === 'off' ? 'active' : ''}" onclick="controlHoodAndSend('${device.id}', 'off')">关机</button>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>风量：<span id="hoodFanDisplay">${fanMap[device.fanSpeed] || '关闭'}</span></label>
+                        <div class="btn-group">
+                            ${[{ val: 0, label: '关闭' }, { val: 1, label: '低' }, { val: 2, label: '中' }, { val: 3, label: '高' }].map(f => `
+                                <button class="btn-option ${f.val === device.fanSpeed ? 'active' : ''}" onclick="controlHoodFanAndSend('${device.id}', ${f.val})">${f.label}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>照明</label>
+                        <div class="btn-group">
+                            <button class="btn-option ${device.light === true ? 'active' : ''}" onclick="controlHoodLightAndSend('${device.id}', true)">💡 开</button>
+                            <button class="btn-option ${device.light === false ? 'active' : ''}" onclick="controlHoodLightAndSend('${device.id}', false)">○ 关</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+           // 冰箱
+            if (device.id === 'kitchen_fridge') {
+                controls += `
+        <div class="control-group">
+            <label>当前模式</label>
+            <div style="font-size:18px;font-weight:600;color:#2C1810;padding:8px 0;">
+                ${device.mode || '智能'}
+            </div>
+        </div>
+        <div class="control-group">
+            <label>运行模式</label>
+            <div class="btn-group">
+                ${['智能', '速冻', '假日'].map(m => `
+                    <button class="btn-option ${m === device.mode ? 'active' : ''}" onclick="setFridgeModeAndSend('${device.id}', '${m}')">${m}</button>
+                `).join('')}
+            </div>
+        </div>
+        <div class="control-group">
+            <label>当前温度</label>
+            <div style="font-size:16px;color:#2C1810;padding:4px 0;">
+                冷藏 ${device.temperature || 4}°C &nbsp;|&nbsp; 冷冻 ${device.freezerTemp || -18}°C
+            </div>
+        </div>
+    `;
+            }
+
+            // 热水器
+            if (device.id === 'kitchen_water') {
+                controls += `
+        <div class="control-group">
+            <label>状态</label>
+            <div style="display:flex;gap:10px;align-items:center;padding:4px 0;">
+                <span style="font-size:14px;font-weight:500;color:#2C1810;">
+                    ${device.power === 'on' ? '🔥 已开启' : '○ 已关闭'}
+                </span>
+            </div>
+        </div>
+    `;
+            }
+
+            // 灶台
+            if (device.id === 'kitchen_stove') {
+                const powerLevel = device.powerLevel || 0;
+                controls += `
+                    <div class="control-group">
+                        <label>火力：<span id="stovePowerDisplay">${powerLevel}%</span></label>
+                        <input type="range" min="0" max="100" step="1" value="${powerLevel}"
+                               oninput="document.getElementById('stovePowerDisplay').textContent=this.value+'%'; 
+                                        document.getElementById('stovePowerVal').value=this.value;"
+                               onchange="sendSliderValue('${device.id}', 'set_power', this.value)">
+                        <input type="hidden" id="stovePowerVal" value="${powerLevel}">
+                        <div style="display:flex;justify-content:space-between;font-size:12px;color:#8B7355;padding:0 4px;">
+                            <span>0% 关</span>
+                            <span>100% 大火</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>快捷火力</label>
+                        <div class="btn-group">
+                            <button class="btn-option ${powerLevel === 0 ? 'active' : ''}" onclick="setStovePowerAndSend('${device.id}', 0)">关闭</button>
+                            <button class="btn-option ${powerLevel === 30 ? 'active' : ''}" onclick="setStovePowerAndSend('${device.id}', 30)">小火</button>
+                            <button class="btn-option ${powerLevel === 60 ? 'active' : ''}" onclick="setStovePowerAndSend('${device.id}', 60)">中火</button>
+                            <button class="btn-option ${powerLevel === 100 ? 'active' : ''}" onclick="setStovePowerAndSend('${device.id}', 100)">大火</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 加湿器
+            if (device.id === 'bedroom_humidifier') {
+                controls += `
+                    <div class="control-group">
+                        <label>雾量：<span id="humidifierMistDisplay">${device.mistLevel}%</span></label>
+                        <input type="range" min="0" max="100" step="1" value="${device.mistLevel}"
+                               oninput="document.getElementById('humidifierMistDisplay').textContent=this.value+'%'; 
+                                        document.getElementById('humidifierMistVal').value=this.value;"
+                               onchange="sendSliderValue('${device.id}', 'set_mist', this.value)">
+                        <input type="hidden" id="humidifierMistVal" value="${device.mistLevel}">
+                        <div style="display:flex;justify-content:space-between;font-size:12px;color:#8B7355;padding:0 4px;">
+                            <span>0% 关</span>
+                            <span>100% 大雾</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 智能锁
+            if (device.id === 'entrance_lock') {
+                const statusMap = { 'locked': '🔒 已上锁', 'unlocked': '🔓 已解锁' };
+                const statusText = statusMap[device.power] || device.power;
+                const battery = device.battery || 85;
+                controls += `
+                    <div class="control-group">
+                        <label>当前状态</label>
+                        <div style="font-size:20px;font-weight:600;color:#2C1810;padding:8px 0;">
+                            ${statusText}
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>电量：<span id="lockBatteryDisplay">${battery}%</span></label>
+                        <div style="width:100%;height:8px;background:#F0EBE5;border-radius:4px;margin-top:4px;">
+                            <div style="width:${battery}%;height:100%;background:${battery > 30 ? '#7BA05B' : '#E8744A'};border-radius:4px;transition:width 0.5s;"></div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>控制</label>
+                        <div class="btn-group">
+                            <button class="btn-option ${device.power === 'unlocked' ? 'active' : ''}" onclick="controlLockAndSend('${device.id}', 'unlock')">🔓 开锁</button>
+                            <button class="btn-option ${device.power === 'locked' ? 'active' : ''}" onclick="controlLockAndSend('${device.id}', 'lock')">🔒 上锁</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 安防模式
+            if (device.id === 'entrance_alarm') {
+                const statusMap = { 'disarmed': '🟢 撤防（在家模式）', 'armed': '🔴 布防（离家模式）', 'alarming': '🚨 报警中！' };
+                const statusText = statusMap[device.power] || device.power || '未知状态';
+
+                // ===== 判断在线/离线状态 =====
+                const isOnline = device.status === 'online';
+                const badgeText = isOnline ? '● 在线' : '○ 离线';
+                const badgeClass = isOnline ? 'on' : 'off';
+
+                controls += `
+        <div class="device-status-badge ${badgeClass}">
+            ${badgeText}
+        </div>
+        <div class="control-group">
+            <label>当前状态</label>
+            <div style="font-size:18px;font-weight:600;color:#2C1810;padding:8px 0;">
+                ${isOnline ? statusText : '设备离线'}
+            </div>
+        </div>
+        <div class="control-group">
+            <label>模式切换</label>
+            <div class="btn-group">
+                <button class="btn-option ${device.power === 'disarmed' ? 'active' : ''}" onclick="controlAlarmMode('${device.id}', 'disarmed')">🟢 撤防</button>
+                <button class="btn-option ${device.power === 'armed' ? 'active' : ''}" onclick="controlAlarmMode('${device.id}', 'armed')">🔴 布防</button>
+                <button class="btn-option ${device.power === 'alarming' ? 'active' : ''}" onclick="controlAlarmMode('${device.id}', 'alarming')">🔔 报警</button>
+            </div>
+        </div>
+    `;
+            }
+
+            // 晾衣架
+            if (device.id === 'balcony_rack') {
+                const pos = device.position || 50;
+                const posText = pos === 0 ? '已升起' : pos === 100 ? '已降下' : `${pos}%`;
+                const movingText = device.isMoving ? '🔄 运行中' : '⏸ 已停止';
+                const lightText = device.light ? '💡 开' : '○ 关';
+                controls += `
+                    <div class="control-group">
+                        <label>状态</label>
+                        <div style="display:flex;gap:20px;padding:8px 0;flex-wrap:wrap;">
+                            <span style="font-size:14px;font-weight:500;color:#2C1810;">📏 ${posText}</span>
+                            <span style="font-size:14px;font-weight:500;color:#2C1810;">${movingText}</span>
+                            <span style="font-size:14px;font-weight:500;color:#2C1810;">💡 ${lightText}</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>当前位置：<span id="rackPositionDisplay">${pos}%</span></label>
+                        <div style="width:100%;height:8px;background:#F0EBE5;border-radius:4px;margin-top:4px;">
+                            <div style="width:${pos}%;height:100%;background:#64B4FF;border-radius:4px;transition:width 0.5s;"></div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>升降控制</label>
+                        <div class="btn-group">
+                            <button class="btn-option" onclick="controlRackAndSend('${device.id}', 'up')">⬆ 上升</button>
+                            <button class="btn-option" onclick="controlRackAndSend('${device.id}', 'stop')">⏹ 停止</button>
+                            <button class="btn-option" onclick="controlRackAndSend('${device.id}', 'down')">⬇ 下降</button>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>照明</label>
+                        <div class="btn-group">
+                            <button class="btn-option ${device.light === true ? 'active' : ''}" onclick="controlRackLightAndSend('${device.id}', true)">💡 开</button>
+                            <button class="btn-option ${device.light === false ? 'active' : ''}" onclick="controlRackLightAndSend('${device.id}', false)">○ 关</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            let badgeText = '';
+            let badgeClass = '';
+
+            // ===== 安防模式：只显示在线/离线 =====
+            if (device.id === 'entrance_alarm') {
+                if (device.status === 'online') {
+                    badgeText = '● 在线';
+                    badgeClass = 'on';
+                } else {
+                    if (device.pending) {
+                        badgeText = '📦 离线 待同步';
+                        badgeClass = 'off';
+                    } else {
+                        badgeText = '○ 离线';
+                        badgeClass = 'off';
+                    }
+                }
+            } else {
+                // ===== 其他设备：正常显示 =====
+                if (device.status === 'online') {
+                    if (device.power === 'on' || device.power === 'charging' || device.power === 'locked') {
+                        badgeText = '● 在线 已开启';
+                        badgeClass = 'on';
+                    } else {
+                        badgeText = '○ 在线 已关闭';
+                        badgeClass = 'off';
+                    }
+                } else {
+                    if (device.pending) {
+                        badgeText = '📦 离线 待同步';
+                        badgeClass = 'off';
+                    } else {
+                        badgeText = '○ 离线';
+                        badgeClass = 'off';
+                    }
+                }
+            }
+
+            // ===== 安防模式不显示通用状态 =====
+            let badgeHTML = '';
+            if (device.id !== 'entrance_alarm') {
+                badgeHTML = `<div class="device-status-badge ${badgeClass}">${badgeText}</div>`;
+            }
+
+            content.innerHTML = `
+                <div class="modal-header">
+                    <h2>${device.icon} ${device.name}</h2>
+                    <button class="modal-close" onclick="closeModal()">✕</button>
+                </div>
+                ${badgeHTML}
+                ${controls}
+            `;
+
+            overlay.classList.add('show');
+            renderUI();
+            renderScene();
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
+            selectedDeviceId = null;
+            renderUI();
+            renderScene();
+        }
+
+        document.getElementById('modalOverlay').addEventListener('click', function (e) {
+            if (e.target === this) closeModal();
+        });
+
+        // ================================================================
+        //  所有控制函数（完整保留）
+        // ================================================================
+
+        function quickControl(deviceId, type, value) {
+                const allDevs = getAllDevicesList();
+                const device = allDevs.find(d => d.id === deviceId);
+                if (!device) return;
+
+                const isLight = ['living_light1', 'living_light2', 'bedroom_light', 'entrance_light', 'balcony_light'].includes(
+                    deviceId);
+
+                for (const room in allDevices) {
+                    const idx = allDevices[room].findIndex(d => d.id === deviceId);
+                    if (idx !== -1) {
+                        if (type === 'on') {
+                            if (isLight) {
+                                allDevices[room][idx].brightness = 50;
+                                allDevices[room][idx].power = 'on';
+                            } else {
+                                allDevices[room][idx].power = 'on';
+                            }
+                            addLog(`${device.name} 已开启`);
+                            // 发送亮度指令，确保后端同步
+                            sendToBackend(deviceId, 'switch', 1);
+                            // 如果是灯，额外发送亮度指令
+                            if (isLight) {
+                                sendToBackend(deviceId, 'set_brightness', 50);
+                            }
+                        } else if (type === 'off') {
+                            if (isLight) {
+                                allDevices[room][idx].power = 'off';
+                                allDevices[room][idx].brightness = 0;
+                            } else {
+                                allDevices[room][idx].power = 'off';
+                            }
+                            addLog(`${device.name} 已关闭`);
+                            sendToBackend(deviceId, 'switch', 0);
+                            // 如果是灯，额外发送亮度指令
+                            if (isLight) {
+                                sendToBackend(deviceId, 'set_brightness', 0);
+                            }
+                        } else if (type === 'mode') {
+                            allDevices[room][idx].mode = value;
+                            addLog(`${device.name} 模式 → ${value}`);
+                            sendToBackend(deviceId, 'set_mode', value);
+                        }
+                        saveToStorage();
+                        break;
+                    }
+                }
+
+                renderUI();
+                renderScene();
+                if (document.getElementById('modalOverlay').classList.contains('show')) {
+                    openModal(deviceId);
+                }
+            }
+
+        function sendSliderValue(deviceId, command, value) {
+                const allDevs = getAllDevicesList();
+                const device = allDevs.find(d => d.id === deviceId);
+                if (!device) return;
+
+                let actualCommand = command;
+
+                // ===== 冰箱专用处理 =====
+                if (deviceId === 'kitchen_fridge') {
+                    // 直接使用传入的 command，已经是 set_fridge_temp 或 set_freezer_temp
+                    if (command === 'set_fridge_temp') {
+                        device.temperature = parseInt(value);
+                        device.power = 'on';
+                    } else if (command === 'set_freezer_temp') {
+                        device.freezerTemp = parseInt(value);
+                        device.power = 'on';
+                    }
+                    saveToStorage();
+                    renderUI();
+                    renderScene();
+                    sendToBackend(deviceId, command, parseInt(value));
+                    return;
+                }
+
+                // ===== 其他设备 =====
+                if (command === 'set_brightness') {
+                    device.brightness = parseInt(value);
+                    device.power = parseInt(value) > 0 ? 'on' : 'off';
+                } else if (command === 'set_volume') {
+                    device.volume = parseInt(value);
+                    device.power = 'on';
+                } else if (command === 'set_temperature') {
+                    device.temperature = parseInt(value);
+                    device.power = 'on';
+                } else if (command === 'set_percent') {
+                    device.percent = parseInt(value);
+                    device.power = parseInt(value) > 0 ? 'on' : 'off';
+                } else if (command === 'set_power') {
+                    device.powerLevel = parseInt(value);
+                    device.power = parseInt(value) > 0 ? 'on' : 'off';
+                } else if (command === 'set_mist') {
+                    device.mistLevel = parseInt(value);
+                    device.power = parseInt(value) > 0 ? 'on' : 'off';
+                }
+                saveToStorage();
+                renderUI();
+                renderScene();
+
+                sendToBackend(deviceId, command, parseInt(value));
+            }
+
+        function changeChannelAndSend(deviceId, delta) {
+            const input = document.getElementById('tvChannelInput');
+            if (!input) return;
+            let newVal = parseInt(input.value) || 1;
+            newVal = Math.max(1, newVal + delta);
+            input.value = newVal;
+            const display = document.getElementById('tvChannelDisplay');
+            if (display) display.textContent = newVal;
+
+            const allDevs = getAllDevicesList();
+            const device = allDevs.find(d => d.id === deviceId);
+            if (!device) return;
+
+            device.channel = newVal;
+            addLog(`📺 ${device.name} 频道 → ${newVal}`);
+            sendToBackend(deviceId, 'set_channel', newVal);
+            saveToStorage();
+            renderUI();
+            renderScene();
+        }
+
+        function setTimerAndSend(deviceId, minutes) {
+            const allDevs = getAllDevicesList();
+            const device = allDevs.find(d => d.id === deviceId);
+            if (!device) return;
+
+            for (const room in allDevices) {
+                const idx = allDevices[room].findIndex(d => d.id === deviceId);
+                if (idx !== -1) {
+                    allDevices[room][idx].timer = minutes;
+                    addLog(`⏱ ${device.name} 定时 → ${minutes === 0 ? '关闭' : minutes + '分钟'}`);
+                    sendToBackend(deviceId, 'set_timer', minutes);
+                    saveToStorage();
+                    break;
+                }
+            }
+
+            const timerInput = document.getElementById('tvTimerVal');
+            if (timerInput) timerInput.value = minutes;
+
+            document.querySelectorAll('.timer-btn').forEach(btn => {
+                const val = parseInt(btn.dataset.timer);
+                btn.classList.toggle('active', val === minutes);
+            });
+
+            renderUI();
+            renderScene();
+            if (document.getElementById('modalOverlay').classList.contains('show')) {
+                openModal(deviceId);
+            }
+        }
+
+        function setAcFanSpeedAndSend(deviceId, speed) {
+            const allDevs = getAllDevicesList();
+            const device = allDevs.find(d => d.id === deviceId);
+            if (!device) return;
+            const speedMap = { 0: '自动', 1: '低', 2: '中', 3: '高' };
+
+            for (const room in allDevices) {
+                const idx = allDevices[room].findIndex(d => d.id === deviceId);
+                if (idx !== -1) {
+                    allDevices[room][idx].fanSpeed = speed;
+                    addLog(`❄️ ${device.name} 风速 → ${speedMap[speed]}`);
+                    sendToBackend(deviceId, 'set_fan_speed', speed);
+                    saveToStorage();
+                    break;
+                }
+            }
+            renderUI();
+            renderScene();
+            if (document.getElementById('modalOverlay').classList.contains('show')) {
+                openModal(deviceId);
+            }
+        }
+
+        function setAcWindDirectionAndSend(deviceId, direction) {
+            const allDevs = getAllDevicesList();
+            const device = allDevs.find(d => d.id === deviceId);
+            if (!device) return;
+
+            for (const room in allDevices) {
+                const idx = allDevices[room].findIndex(d => d.id === deviceId);
+                if (idx !== -1) {
+                    allDevices[room][idx].windDirection = direction;
+                    addLog(`❄️ ${device.name} 风向 → ${direction}`);
+                    sendToBackend(deviceId, 'set_wind_direction', direction);
+                    saveToStorage();
+                    break;
+                }
+            }
+            renderUI();
+            renderScene();
+            if (document.getElementById('modalOverlay').classList.contains('show')) {
+                openModal(deviceId);
+            }
+        }
+
+        function setAcTimerAndSend(deviceId, minutes) {
+            const allDevs = getAllDevicesList();
+            const device = allDevs.find(d => d.id === deviceId);
+            if (!device) return;
+
+            for (const room in allDevices) {
+                const idx = allDevices[room].findIndex(d => d.id === deviceId);
+                if (idx !== -1) {
+                    allDevices[room][idx].timer = minutes;
+                    addLog(`⏱ ${device.name} 定时 → ${minutes === 0 ? '关闭' : minutes + '分钟'}`);
+                    sendToBackend(deviceId, 'set_timer', minutes);
+                    saveToStorage();
+                    break;
+                }
+            }
+            const timerInput = document.getElementById('acTimerVal');
+            if (timerInput) timerInput.value = minutes;
+            renderUI();
+            renderScene();
+            if (document.getElementById('modalOverlay').classList.contains('show')) {
+                openModal(deviceId);
+            }
+        }
+
+        function setSpeakerModeAndSend(deviceId, mode) {
+            const allDevs = getAllDevicesList();
+            const device = allDevs.find(d => d.id === deviceId);
+            if (!device) return;
+
+            for (const room in allDevices) {
+                const idx = allDevices[room].findIndex(d => d.id === deviceId);
+                if (idx !== -1) {
+                    allDevices[room][idx].mode = mode;
+                    addLog(`🔊 ${device.name} 音效 → ${mode}`);
+                    sendToBackend(deviceId, 'set_speaker_mode', mode);
+                    saveToStorage();
+                    break;
+                }
+            }
+            renderUI();
+            renderScene();
+            if (document.getElementById('modalOverlay').classList.contains('show')) {
+                openModal(deviceId);
+            }
+        }
+
+        function setVacuumModeAndSend(deviceId, mode) {
+            const allDevs = getAllDevicesList();
+            const device = allDevs.find(d => d.id === deviceId);
+            if (!device) return;
+
+            for (const room in allDevices) {
+                const idx = allDevices[room].findIndex(d => d.id === deviceId);
+                if (idx !== -1) {
+                    allDevices[room][idx].mode = mode;
+                    addLog(`🤖 ${device.name} 模式 → ${mode}`);
+                    sendToBackend(deviceId, 'set_vacuum_mode', mode);
+                    saveToStorage();
+                    break;
+                }
+            }
+            renderUI();
+            renderScene();
+            if (document.getElementById('modalOverlay').classList.contains('show')) {
+                openModal(deviceId);
+            }
+        }
+
+        function previewCurtainPercent(value) {
+            const allDevs = getAllDevicesList();
+            const device = allDevs.find(d => d.id === selectedDeviceId);
+            if (!device) return;
+            for (const room in allDevices) {
+                const idx = allDevices[room].findIndex(d => d.id === device.id);
+                if (idx !== -1) {
+                    allDevices[room][idx].percent = parseInt(value);
+                    if (allDevices[room][idx].status === 'online') {
+                        allDevices[room][idx].power = parseInt(value) > 0 ? 'on' : 'off';
+                    }
+                    break;
+                }
+            }
+            renderScene();
+        }
+
+        function setCurtainPercentAndSend(deviceId, percent) {
+            const allDevs = getAllDevicesList();
+            const device = allDevs.find(d => d.id === deviceId);
+            if (!device) return;
+
+            for (const room in allDevices) {
+                const idx = allDevices[room].findIndex(d => d.id === deviceId);
+                if (idx !== -1) {
+                    allDevices[room][idx].percent = percent;
+                    allDevices[room][idx].power = percent > 0 ? 'on' : 'off';
+                    addLog(`🪟 ${device.name} 开合度 → ${percent}%`);
+                    sendToBackend(deviceId, 'set_percent', percent);
+                    saveToStorage();
+                    break;
+                }
+            }
+            renderUI();
+            renderScene();
+            if (document.getElementById('modalOverlay').classList.contains('show')) {
+                openModal(deviceId);
+            }
+        }
+
+        function setDishwasherModeAndSend(deviceId, mode) {
+            const allDevs = getAllDevicesList();
+            const device = allDevs.find(d => d.id === deviceId);
+            if (!device) return;
+
+            for (const room in allDevices) {
+                const idx = allDevices[room].findIndex(d => d.id === deviceId);
+                if (idx !== -1) {
+                    allDevices[room][idx].mode = mode;
+                    addLog(`🧼 ${device.name} 模式 → ${mode}`);
+                    sendToBackend(deviceId, 'set_dishwasher_mode', mode);
+                    saveToStorage();
+                    break;
+                }
+            }
+            renderUI();
+            renderScene();
+            if (document.getElementById('modalOverlay').classList.contains('show')) {
+                openModal(deviceId);
+            }
+        }
+
+        function controlDishwasherAndSend(deviceId, action) {
+                const allDevs = getAllDevicesList();
+                const device = allDevs.find(d => d.id === deviceId);
+                if (!device) return;
+
+                for (const room in allDevices) {
+                    const idx = allDevices[room].findIndex(d => d.id === deviceId);
+                    if (idx !== -1) {
+                        if (action === 'start') {
+                            // 如果已暂停，直接恢复运行（保留暂停状态的兼容处理）
+                            if (allDevices[room][idx].power === 'paused') {
+                                allDevices[room][idx].power = 'on';
+                                addLog(`🧼 ${device.name} 已恢复运行`);
+                                sendToBackend(deviceId, 'switch', 1);
+                            } else {
+                                allDevices[room][idx].power = 'on';
+                                allDevices[room][idx].progress = 50;
+                                allDevices[room][idx].timeRemaining = 30;
+                                addLog(`🧼 ${device.name} 开始洗涤`);
+                                sendToBackend(deviceId, 'switch', 1);
+                            }
+                        } else if (action === 'stop') {
+                            allDevices[room][idx].power = 'off';
+                            allDevices[room][idx].progress = 0;
+                            allDevices[room][idx].timeRemaining = 0;
+                            addLog(`🧼 ${device.name} 已停止`);
+                            sendToBackend(deviceId, 'switch', 0);
+                        }
+                        saveToStorage();
+                        break;
+                    }
+                }
+                renderUI();
+                renderScene();
+                if (document.getElementById('modalOverlay').classList.contains('show')) {
+                    openModal(deviceId);
+                }
+            }
+
+        function controlHoodFanAndSend(deviceId, speed) {
+            const allDevs = getAllDevicesList();
+            const device = allDevs.find(d => d.id === deviceId);
+            if (!device) return;
+            const fanMap = { 0: '关闭', 1: '低', 2: '中', 3: '高' };
+
+            for (const room in allDevices) {
+                const idx = allDevices[room].findIndex(d => d.id === deviceId);
+                if (idx !== -1) {
+                    allDevices[room][idx].fanSpeed = speed;
+                    addLog(`💨 ${device.name} 风量 → ${fanMap[speed]}`);
+                    sendToBackend(deviceId, 'set_fan_speed', speed);
+                    saveToStorage();
+                    break;
+                }
+            }
+            renderUI();
+            renderScene();
+            if (document.getElementById('modalOverlay').classList.contains('show')) {
+                openModal(deviceId);
+            }
+        }
+
+        function controlHoodLightAndSend(deviceId, isOn) {
+            const allDevs = getAllDevicesList();
+            const device = allDevs.find(d => d.id === deviceId);
+            if (!device) return;
+
+            for (const room in allDevices) {
+                const idx = allDevices[room].findIndex(d => d.id === deviceId);
+                if (idx !== -1) {
+                    allDevices[room][idx].light = isOn;
+                    addLog(`💨 ${device.name} 照明 ${isOn ? '已开启' : '已关闭'}`);
+                    sendToBackend(deviceId, 'set_light', isOn ? 1 : 0);
+                    saveToStorage();
+                    break;
+                }
+            }
+            renderUI();
+            renderScene();
+            if (document.getElementById('modalOverlay').classList.contains('show')) {
+                openModal(deviceId);
+            }
+        }
+
+        function controlHoodAndSend(deviceId, action) {
+            const allDevs = getAllDevicesList();
+            const device = allDevs.find(d => d.id === deviceId);
+            if (!device) return;
+
+            for (const room in allDevices) {
+                const idx = allDevices[room].findIndex(d => d.id === deviceId);
+                if (idx !== -1) {
+                    if (action === 'on') {
+                        allDevices[room][idx].power = 'on';
+                        if (allDevices[room][idx].fanSpeed === 0) {
+                            allDevices[room][idx].fanSpeed = 2;
+                        }
+                        addLog(`💨 ${device.name} 已开启`);
+                        sendToBackend(deviceId, 'switch', 1);
+                    } else if (action === 'off') {
+                        allDevices[room][idx].power = 'off';
+                        allDevices[room][idx].fanSpeed = 0;
+                        allDevices[room][idx].light = false;
+                        addLog(`💨 ${device.name} 已关闭`);
+                        sendToBackend(deviceId, 'switch', 0);
+                    }
+                    saveToStorage();
+                    break;
+                }
+            }
+
+            renderUI();
+            renderScene();
+            if (document.getElementById('modalOverlay').classList.contains('show')) {
+                openModal(deviceId);
+            }
+        }
+
+        function setFridgeModeAndSend(deviceId, mode) {
+                const allDevs = getAllDevicesList();
+                const device = allDevs.find(d => d.id === deviceId);
+                if (!device) return;
+
+                for (const room in allDevices) {
+                    const idx = allDevices[room].findIndex(d => d.id === deviceId);
+                    if (idx !== -1) {
+                        allDevices[room][idx].mode = mode;
+
+                        // ===== 根据模式自动调整温度 =====
+                        if (mode === '智能') {
+                            allDevices[room][idx].temperature = 4;
+                            allDevices[room][idx].freezerTemp = -18;
+                        } else if (mode === '速冻') {
+                            allDevices[room][idx].temperature = 2;
+                            allDevices[room][idx].freezerTemp = -25;
+                        } else if (mode === '假日') {
+                            allDevices[room][idx].temperature = 6;
+                            allDevices[room][idx].freezerTemp = -15;
+                        }
+
+                        addLog(`🧊 ${device.name} 模式 → ${mode}（冷藏${allDevices[room][idx].temperature}°C，冷冻${allDevices[room][idx].freezerTemp}°C）`);
+                        sendToBackend(deviceId, 'set_fridge_mode', mode);
+                        saveToStorage();
+                        break;
+                    }
+                }
+                renderUI();
+                renderScene();
+                if (document.getElementById('modalOverlay').classList.contains('show')) {
+                    openModal(deviceId);
+                }
+            }
+
+        function setStovePowerAndSend(deviceId, power) {
+            const allDevs = getAllDevicesList();
+            const device = allDevs.find(d => d.id === deviceId);
+            if (!device) return;
+
+            for (const room in allDevices) {
+                const idx = allDevices[room].findIndex(d => d.id === deviceId);
+                if (idx !== -1) {
+                    allDevices[room][idx].powerLevel = power;
+                    allDevices[room][idx].power = power > 0 ? 'on' : 'off';
+                    const powerText = power === 0 ? '关闭' : `${power}%`;
+                    addLog(`🍳 ${device.name} 火力 → ${powerText}`);
+                    sendToBackend(deviceId, 'set_power', power);
+                    saveToStorage();
+                    break;
+                }
+            }
+            renderUI();
+            renderScene();
+            if (document.getElementById('modalOverlay').classList.contains('show')) {
+                openModal(deviceId);
+            }
+        }
+
+        function controlLockAndSend(deviceId, action) {
+            const allDevs = getAllDevicesList();
+            const device = allDevs.find(d => d.id === deviceId);
+            if (!device) return;
+
+            for (const room in allDevices) {
+                const idx = allDevices[room].findIndex(d => d.id === deviceId);
+                if (idx !== -1) {
+                    if (action === 'unlock') {
+                        allDevices[room][idx].power = 'unlocked';
+                        addLog(`🔓 ${device.name} 已开锁`);
+                        sendToBackend(deviceId, 'lock_unlock', 1);
+                    } else if (action === 'lock') {
+                        allDevices[room][idx].power = 'locked';
+                        addLog(`🔒 ${device.name} 已上锁`);
+                        sendToBackend(deviceId, 'lock_unlock', 0);
+                    }
+                    saveToStorage();
+                    break;
+                }
+            }
+            renderUI();
+            renderScene();
+            if (document.getElementById('modalOverlay').classList.contains('show')) {
+                openModal(deviceId);
+            }
+        }
+
+        // 安防模式 - 只切换模式，不影响开关
+            function controlAlarmMode(deviceId, mode) {
+                const allDevs = getAllDevicesList();
+                const device = allDevs.find(d => d.id === deviceId);
+                if (!device) return;
+
+                const modeMap = { 'disarmed': '撤防（在家模式）', 'armed': '布防（离家模式）', 'alarming': '报警中！' };
+
+                for (const room in allDevices) {
+                    const idx = allDevices[room].findIndex(d => d.id === deviceId);
+                    if (idx !== -1) {
+                        // 只改模式，不影响开关状态
+                        allDevices[room][idx].power = mode;
+                        addLog(`🔔 ${device.name} → ${modeMap[mode]}`);
+                        const value = mode === 'disarmed' ? 0 : (mode === 'armed' ? 1 : 2);
+                        sendToBackend(deviceId, 'alarm_switch', value);
+                        saveToStorage();
+                        break;
+                    }
+                }
+                renderUI();
+                renderScene();
+                if (document.getElementById('modalOverlay').classList.contains('show')) {
+                    openModal(deviceId);
+                }
+            }
+
+        function controlRackAndSend(deviceId, action) {
+            const allDevs = getAllDevicesList();
+            const device = allDevs.find(d => d.id === deviceId);
+            if (!device) return;
+
+            for (const room in allDevices) {
+                const idx = allDevices[room].findIndex(d => d.id === deviceId);
+                if (idx !== -1) {
+                    const currentPos = allDevices[room][idx].position || 50;
+                    if (action === 'up') {
+                        const newPos = Math.max(0, currentPos - 10);
+                        allDevices[room][idx].position = newPos;
+                        allDevices[room][idx].isMoving = newPos > 0;
+                        addLog(`👕 ${device.name} 上升中... ${newPos}%`);
+                        sendToBackend(deviceId, 'set_rack_position', newPos);
+                    } else if (action === 'down') {
+                        const newPos = Math.min(100, currentPos + 10);
+                        allDevices[room][idx].position = newPos;
+                        allDevices[room][idx].isMoving = newPos < 100;
+                        addLog(`👕 ${device.name} 下降中... ${newPos}%`);
+                        sendToBackend(deviceId, 'set_rack_position', newPos);
+                    } else if (action === 'stop') {
+                        allDevices[room][idx].isMoving = false;
+                        addLog(`👕 ${device.name} 已停止`);
+                    }
+                    saveToStorage();
+                    break;
+                }
+            }
+            renderUI();
+            renderScene();
+            if (document.getElementById('modalOverlay').classList.contains('show')) {
+                openModal(deviceId);
+            }
+        }
+
+        function controlRackLightAndSend(deviceId, isOn) {
+            const allDevs = getAllDevicesList();
+            const device = allDevs.find(d => d.id === deviceId);
+            if (!device) return;
+
+            for (const room in allDevices) {
+                const idx = allDevices[room].findIndex(d => d.id === deviceId);
+                if (idx !== -1) {
+                    allDevices[room][idx].light = isOn;
+                    addLog(`👕 ${device.name} 照明 ${isOn ? '已开启' : '已关闭'}`);
+                    sendToBackend(deviceId, 'set_rack_light', isOn ? 1 : 0);
+                    saveToStorage();
+                    break;
+                }
+            }
+            renderUI();
+            renderScene();
+            if (document.getElementById('modalOverlay').classList.contains('show')) {
+                openModal(deviceId);
+            }
+        }
+
+        function updateLightPreview(value) {
+            const allDevs = getAllDevicesList();
+            const device = allDevs.find(d => d.id === selectedDeviceId);
+            if (!device) return;
+
+            const isLight = ['living_light1', 'living_light2', 'bedroom_light', 'entrance_light', 'balcony_light'].includes(
+                device.id);
+            if (!isLight) return;
+
+            const brightness = parseInt(value);
+            for (const room in allDevices) {
+                const idx = allDevices[room].findIndex(d => d.id === device.id);
+                if (idx !== -1) {
+                    allDevices[room][idx].brightness = brightness;
+                    allDevices[room][idx].power = brightness > 0 ? 'on' : 'off';
+                    allDevices[room][idx].pending = false;
+                    break;
+                }
+            }
+            renderUI();
+            renderScene();
+        }
+
+        // ================================================================
+        //  🚀 页面启动 - 强制从后端加载数据
+        // ================================================================
+
+        console.log('🏠 设备控制页面启动...');
+
+        // 1. 显示加载状态
+        document.getElementById('totalStatus').textContent = '⏳ 加载中...';
+        document.getElementById('deviceScroll').innerHTML =
+            '<p style="color:#C4B5A5;padding:20px;text-align:center;">⏳ 加载设备状态...</p>';
+
+        // 2. 从后端拉取数据（强制覆盖 localStorage）
+        refreshDeviceStatus();
+
+        // 2.5 立即渲染场景图
+            renderScene();
+
+        // 3. 启动自动轮询（每5秒）
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+        }
+        autoRefreshInterval = setInterval(refreshDeviceStatus, 10000);
+
+        // 4. 注册弹窗关闭事件
+        document.getElementById('modalOverlay').addEventListener('click', function (e) {
+            if (e.target === this) closeModal();
+        });
+
+        addLog('🏠 设备控制已加载');
+        console.log('✅ 设备控制页面已启动，自动轮询已开启（5秒）');
+        console.log('💡 提示：如果没有设备在线，请先启动 device_simulator.py');
+    </script>
+</body>
+
+</html>

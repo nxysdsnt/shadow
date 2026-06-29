@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧生活</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #FFFFFF;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        .app-container {
+            max-width: 1100px;
+            width: 100%;
+            background: #FFFFFF;
+            padding: 40px 60px 60px;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-container::before {
+            content: '';
+            position: absolute;
+            top: -160px;
+            right: -60px;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(212, 165, 116, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .weather-icon {
+            font-size: 36px;
+        }
+
+        .weather-temp {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2C1810;
+        }
+
+        .weather-desc {
+            font-size: 16px;
+            color: #8B7355;
+            margin-left: 6px;
+        }
+
+        .header-right {
+            text-align: right;
+        }
+
+        .header-date {
+            font-size: 18px;
+            color: #8B7355;
+            font-weight: 500;
+        }
+
+        .hero {
+            margin: 40px 0 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-title {
+            font-size: 56px;
+            font-weight: 700;
+            color: #2C1810;
+            line-height: 1.2;
+        }
+
+        .hero-title span {
+            color: #D4A574;
+        }
+
+        .hero-sub {
+            font-size: 20px;
+            color: #8B7355;
+            margin-top: 8px;
+            letter-spacing: 6px;
+            font-weight: 300;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin: 40px 0 44px;
+            position: relative;
+            z-index: 1;
+            max-width: 700px;
+        }
+
+        .feature-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            border: none;
+            background: none;
+            padding: 0;
+            font-family: inherit;
+        }
+
+        .feature-item:hover {
+            transform: translateY(-4px);
+        }
+
+        .feature-item:active {
+            transform: scale(0.95);
+        }
+
+        .feature-icon {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            background: #F5F0EB;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(44, 24, 16, 0.06);
+        }
+
+        .feature-item:hover .feature-icon {
+            background: #D4A574;
+            box-shadow: 0 8px 30px rgba(212, 165, 116, 0.35);
+        }
+
+        .feature-label {
+            font-size: 16px;
+            color: #2C1810;
+            font-weight: 500;
+            letter-spacing: 2px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            max-width: 400px;
+            padding: 18px 40px;
+            background: #2C1810;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 3px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 8px 28px rgba(44, 24, 16, 0.20);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 36px rgba(44, 24, 16, 0.28);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+
+        .preview-section {
+            margin-top: 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .preview-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2C1810;
+        }
+
+        .preview-more {
+            font-size: 14px;
+            color: #8B7355;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .preview-more:hover {
+            color: #2C1810;
+        }
+
+        .preview-scroll {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding: 6px 0 12px;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .preview-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .device-preview-card {
+            flex: 0 0 140px;
+            background: #F8F6F3;
+            border-radius: 24px;
+            padding: 20px 16px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .device-preview-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(44, 24, 16, 0.10);
+        }
+
+        .device-preview-card:active {
+            transform: scale(0.95);
+        }
+
+        .device-preview-card .icon {
+            font-size: 36px;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .device-preview-card .name {
+            font-size: 14px;
+            color: #2C1810;
+            font-weight: 500;
+        }
+
+        .device-preview-card .status {
+            font-size: 12px;
+            font-weight: 400;
+        }
+
+        .device-preview-card .status.online {
+            color: #7BA05B;
+        }
+
+        .device-preview-card .status.offline {
+            color: #C4B5A5;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 24px;
+        }
+
+        .pagination .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #D4C5B5;
+            transition: all 0.3s ease;
+        }
+
+        .pagination .dot.active {
+            width: 28px;
+            border-radius: 6px;
+            background: #2C1810;
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #F0EBE5;
+            display: flex;
+            justify-content: center;
+        }
+
+        .footer .home-indicator {
+            width: 60px;
+            height: 4px;
+            background: #D4C5B5;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                padding: 24px 20px 40px;
+            }
+
+            .hero-title {
+                font-size: 34px;
+            }
+
+            .hero-sub {
+                font-size: 16px;
+                letter-spacing: 4px;
+            }
+
+            .features {
+                gap: 12px;
+                max-width: 100%;
+            }
+
+            .feature-icon {
+                width: 64px;
+                height: 64px;
+                font-size: 28px;
+            }
+
+            .feature-label {
+                font-size: 13px;
+            }
+
+            .btn-primary {
+                font-size: 17px;
+                padding: 16px;
+                max-width: 100%;
+            }
+
+            .device-preview-card {
+                flex: 0 0 110px;
+                padding: 14px 12px;
+            }
+
+            .device-preview-card .icon {
+                font-size: 28px;
+            }
+
+            .header-date {
+                font-size: 14px;
+            }
+
+            .weather-temp {
+                font-size: 22px;
+            }
+        }
+
+        @media (max-width: 440px) {
+            .app-container {
+                padding: 16px 14px 30px;
+            }
+
+            .hero-title {
+                font-size: 26px;
+            }
+
+            .features {
+                gap: 6px;
+            }
+
+            .feature-icon {
+                width: 52px;
+                height: 52px;
+                font-size: 22px;
+            }
+
+            .feature-label {
+                font-size: 11px;
+                letter-spacing: 0;
+            }
+
+            .device-preview-card {
+                flex: 0 0 80px;
+                padding: 10px 8px;
+            }
+
+            .device-preview-card .icon {
+                font-size: 22px;
+            }
+
+            .device-preview-card .name {
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <!-- <div class="header">
+            <div class="header-left">
+                <span class="weather-icon">☀️</span>
+                <span class="weather-temp">31°</span>
+                <span class="weather-desc">局部晴朗</span>
+            </div> 
+            <div class="header-right">
+                <div class="header-date">2026/6/24</div>
+            </div>
+        </div>-->
+
+        <div class="hero">
+            <div class="hero-title">
+                智慧生活<br><span>一键掌控</span>
+            </div>
+            <div class="hero-sub">全屋智能解决方案</div>
+        </div>
+
+        <div class="features">
+            <button class="feature-item" onclick="alert('智能照明页面开发中...')">
+                <div class="feature-icon">💡</div>
+                <span class="feature-label">智能照明</span>
+            </button>
+            <button class="feature-item" onclick="alert('智能安防页面开发中...')">
+                <div class="feature-icon">🔒</div>
+                <span class="feature-label">智能安防</span>
+            </button>
+            <button class="feature-item" onclick="alert('智能温控页面开发中...')">
+                <div class="feature-icon">🌡️</div>
+                <span class="feature-label">智能温控</span>
+            </button>
+            <button class="feature-item" onclick="alert('智能家电页面开发中...')">
+                <div class="feature-icon">📺</div>
+                <span class="feature-label">智能家电</span>
+            </button>
+        </div>
+
+        <button class="btn-primary" onclick="location.href='devices.html'">
+            🏠 立即体验
+        </button>
+
+        <div class="preview-section">
+            <div class="preview-header">
+                <span class="preview-title" id="onlineDeviceTitle">📋 在线设备</span>
+                <span class="preview-more" onclick="location.href='devices.html'">查看全部 →</span>
+            </div>
+            <div class="preview-scroll" id="previewScroll">
+                <!-- JS动态生成 -->
+            </div>
+        </div>
+
+        <div class="pagination">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
+
+        <div class="footer">
+            <div class="home-indicator"></div>
+        </div>
+
+    </div>
+
+    <script src="device-data.js"></script>
+
+    <script>
+        // ================================================================
+        //  渲染设备预览
+        // ================================================================
+        function renderPreview() {
+            loadFromStorage();
+
+            const scroll = document.getElementById('previewScroll');
+            const allDevicesList = getAllDevicesList();
+
+            const showDevices = allDevicesList.slice(0, 6);
+
+            // 统计在线设备数量
+            const online = allDevicesList.filter(d => d.status === 'online').length;
+            const total = allDevicesList.length;
+            document.getElementById('onlineDeviceTitle').textContent =
+                `📋 在线设备 (${online}/${total})`;
+
+            // 渲染卡片
+            scroll.innerHTML = showDevices.map(device => {
+                // 正确判断在线状态：status 字段只有 'online' 或 'offline'
+                const isOnline = device.status === 'online';
+                const statusText = isOnline ? '● 在线' : '○ 离线';
+                const statusClass = isOnline ? 'online' : 'offline';
+
+                return `
+                            <div class="device-preview-card" onclick="location.href='devices.html'">
+                                <span class="icon">${device.icon}</span>
+                                <div class="name">${device.name}</div>
+                                <div class="status ${statusClass}">${statusText}</div>
+                            </div>
+                        `;
+            }).join('');
+        }
+
+        // ================================================================
+        //  页面加载
+        // ================================================================
+        renderPreview();
+        console.log('🏠 智慧生活 已启动！');
+
+        // 每5秒刷新一次
+        setInterval(renderPreview, 5000);
+    </script>
+
+</body>
+
+</html>
