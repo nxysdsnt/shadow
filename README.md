@@ -12,30 +12,7 @@
 - 模拟设备：Python
 
 ##系统架构
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+<img width="692" height="485" alt="ab1e6bc28837b1a5224fe832c87c96a3" src="https://github.com/user-attachments/assets/377115a6-d579-4511-b490-3781c7a8faa6" />
 
 ##功能特性
 设备在线控制：设备在线时指令通过MQTT实时下发；
