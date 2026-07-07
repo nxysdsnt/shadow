@@ -803,6 +803,7 @@
         let selectedDeviceId = null;
         let logs = ['系统已启动'];
         let autoRefreshInterval = null;
+        let speakerAudio = null;  // 音箱音频对象
 
         const sceneConfig = {
             '客厅': {
@@ -1231,18 +1232,54 @@
                 markersDiv.innerHTML = '<div style="color:#C4B5A5;text-align:center;padding:40px;">加载场景图...</div>';
 
                 img.onload = function () {
-                    renderMarkers();
-                };
+                renderMarkers();
+
+                // ===== 强制保持电视图片（关闭弹窗后不恢复） =====
+                if (currentRoom === '客厅') {
+                    const roomDevices = allDevices[currentRoom] || [];
+                    const tvDevice = roomDevices.find(d => d.id === 'living_tv');
+                    if (tvDevice && tvDevice.power === 'on' && tvDevice.status === 'online') {
+                        const config = sceneConfig[currentRoom];
+                        if (config && config.image) {
+                            const channel = tvDevice.channel || 1;
+                            const chSuffix = (channel >= 1 && channel <= 3) ? channel : 1;
+                            const targetPath = config.image.replace('.jpg', `_ch${chSuffix}.jpg`);
+                            // 如果当前显示的图片不是目标图片，强制切换
+                            if (!img.src.includes(`_ch${chSuffix}.jpg`)) {
+                                img.src = targetPath;
+                            }
+                        }
+                    }
+                }
+            };
                 img.onerror = function () {
                     placeholder.style.display = 'block';
                     container.classList.remove('show');
                     placeholder.innerHTML = `
             <span class="big-icon">🖼️</span>
             <p>图片加载失败</p>
-            <p class="sub">请将 ${config.image} 放入 images/ 文件夹</p>
+            <p class="sub">请将 ${imagePath} 放入 images/ 文件夹</p>
         `;
                 };
-                img.src = config.image;
+                //img.src = config.image;
+
+                                // ===== 根据电视状态和频道切换场景图 =====
+            let imagePath = config.image;
+            const roomDevices = allDevices[currentRoom] || [];
+
+            // 只有客厅有电视，且电视存在
+           if (currentRoom === '客厅') {
+                const tvDevice = roomDevices.find(d => d.id === 'living_tv');
+
+                if (tvDevice && tvDevice.power === 'on' && tvDevice.status === 'online') {
+                    const channel = tvDevice.channel || 1;
+                    // 频道限制为 1、2、3，超出则默认为1
+                    const chSuffix = (channel >= 1 && channel <= 3) ? channel : 1;
+                    imagePath = config.image.replace('.jpg', `_ch${chSuffix}.jpg`);
+                }
+            }
+            img.src = imagePath;  // ← 用 imagePath 替换原来的 config.image
+  
 
                 // 如果图片已经缓存，立即渲染
                 if (img.complete && img.naturalWidth > 0) {
@@ -1786,8 +1823,9 @@
                         <label>频道：<span id="tvChannelDisplay">${channel}</span></label>
                         <div style="display:flex;gap:10px;margin-top:6px;">
                             <button class="btn-option" onclick="changeChannelAndSend('${device.id}', -1)">− 减</button>
-                            <input type="number" id="tvChannelInput" value="${channel}" min="1" max="999"
+                            <input type="number" id="tvChannelInput" value="${channel}" min="1" max="3"
                                    oninput="document.getElementById('tvChannelDisplay').textContent=this.value;"
+                                   onchange="handleChannelInputChange(this.value, '${device.id}')"
                                    style="width:80px;text-align:center;border:2px solid #F0EBE5;border-radius:12px;padding:6px;font-size:16px;">
                             <button class="btn-option" onclick="changeChannelAndSend('${device.id}', 1)">加 +</button>
                         </div>
@@ -1858,8 +1896,8 @@
                     <div class="control-group">
                         <label>音量：<span id="speakerVolumeDisplay">${volume}%</span></label>
                         <input type="range" min="0" max="100" value="${volume}"
-                               oninput="document.getElementById('speakerVolumeDisplay').textContent=this.value+'%'; document.getElementById('speakerVolumeVal').value=this.value;"
-                               onchange="sendSliderValue('${device.id}', 'set_volume', this.value)">
+                           oninput="document.getElementById('speakerVolumeDisplay').textContent=this.value+'%'; document.getElementById('speakerVolumeVal').value=this.value;"
+                            onchange="sendSliderValue('${device.id}', 'set_volume', this.value)">
                         <input type="hidden" id="speakerVolumeVal" value="${volume}">
                     </div>
                     <div class="control-group">
@@ -2226,11 +2264,11 @@
         }
 
         function closeModal() {
-            document.getElementById('modalOverlay').classList.remove('show');
-            selectedDeviceId = null;
-            renderUI();
-            renderScene();
-        }
+                document.getElementById('modalOverlay').classList.remove('show');
+                selectedDeviceId = null;
+                renderUI();
+                renderScene();
+            }
 
         document.getElementById('modalOverlay').addEventListener('click', function (e) {
             if (e.target === this) closeModal();
@@ -2241,6 +2279,82 @@
         // ================================================================
 
         function quickControl(deviceId, type, value) {
+                if (deviceId === 'living_speaker') {
+                if (type === 'on') {
+                    // 开音箱 + 播放音乐
+                    const allDevs = getAllDevicesList();
+                    const device = allDevs.find(d => d.id === deviceId);
+                    if (!device) return;
+
+                    // 更新设备状态
+                    for (const room in allDevices) {
+                        const idx = allDevices[room].findIndex(d => d.id === deviceId);
+                        if (idx !== -1) {
+                            allDevices[room][idx].power = 'on';
+                            saveToStorage();
+                            break;
+                        }
+                    }
+
+                    addLog(`🔊 ${device.name} 已开启，正在播放音乐`);
+                    sendToBackend(deviceId, 'switch', 1);
+
+                    // ===== 播放音乐 =====
+                    if (speakerAudio) {
+                        speakerAudio.pause();
+                        speakerAudio = null;
+                    }
+                    speakerAudio = new Audio('audio/music.mp3');
+                    speakerAudio.loop = true;
+                    speakerAudio.play().catch(err => {
+                        console.log('⚠️ 音乐播放失败:', err);
+                        addLog('⚠️ 音乐播放失败，请检查 audio/music.mp3 是否存在');
+                    });
+
+                    renderUI();
+                    renderScene();
+                    if (document.getElementById('modalOverlay').classList.contains('show')) {
+                        openModal(deviceId);
+                    }
+                } else if (type === 'off') {
+                    // 关音箱 + 停止音乐
+                    const allDevs = getAllDevicesList();
+                    const device = allDevs.find(d => d.id === deviceId);
+                    if (!device) return;
+
+                    for (const room in allDevices) {
+                        const idx = allDevices[room].findIndex(d => d.id === deviceId);
+                        if (idx !== -1) {
+                            allDevices[room][idx].power = 'off';
+                            saveToStorage();
+                            break;
+                        }
+                    }
+
+                    addLog(`🔊 ${device.name} 已关闭，音乐停止`);
+                    sendToBackend(deviceId, 'switch', 0);
+
+                    // ===== 停止音乐 =====
+                    if (speakerAudio) {
+                        speakerAudio.pause();
+                        speakerAudio = null;
+                    }
+
+                    renderUI();
+                    renderScene();
+                    if (document.getElementById('modalOverlay').classList.contains('show')) {
+                        openModal(deviceId);
+                    }
+                } else if (type === 'mode') {
+                    // 模式切换走原有逻辑
+                    // 这里继续往下执行，不return
+                }
+                // 如果是开关操作，已经处理完，直接return
+                if (type === 'on' || type === 'off') {
+                    return;
+                }
+            }
+
                 const allDevs = getAllDevicesList();
                 const device = allDevs.find(d => d.id === deviceId);
                 if (!device) return;
@@ -2326,6 +2440,12 @@
                 } else if (command === 'set_volume') {
                     device.volume = parseInt(value);
                     device.power = 'on';
+                    // ===== 控制实际音乐音量 =====
+                    if (deviceId === 'living_speaker' && speakerAudio) {
+                        const volumeLevel = parseInt(value) / 100;
+                        speakerAudio.volume = Math.max(0, Math.min(1, volumeLevel));
+                        console.log(`🔊 音乐音量设置为: ${parseInt(value)}%`);
+                    }
                 } else if (command === 'set_temperature') {
                     device.temperature = parseInt(value);
                     device.power = 'on';
@@ -2347,26 +2467,39 @@
             }
 
         function changeChannelAndSend(deviceId, delta) {
-            const input = document.getElementById('tvChannelInput');
-            if (!input) return;
-            let newVal = parseInt(input.value) || 1;
-            newVal = Math.max(1, newVal + delta);
-            input.value = newVal;
-            const display = document.getElementById('tvChannelDisplay');
-            if (display) display.textContent = newVal;
+                const input = document.getElementById('tvChannelInput');
+                if (!input) return;
+                let newVal = parseInt(input.value) || 1;
+                // 频道范围限制为 1~3
+                newVal = Math.max(1, Math.min(3, newVal + delta));
+                input.value = newVal;
+                const display = document.getElementById('tvChannelDisplay');
+                if (display) display.textContent = newVal;
 
-            const allDevs = getAllDevicesList();
-            const device = allDevs.find(d => d.id === deviceId);
-            if (!device) return;
+                const allDevs = getAllDevicesList();
+                const device = allDevs.find(d => d.id === deviceId);
+                if (!device) return;
 
-            device.channel = newVal;
-            addLog(`📺 ${device.name} 频道 → ${newVal}`);
-            sendToBackend(deviceId, 'set_channel', newVal);
-            saveToStorage();
-            renderUI();
-            renderScene();
-        }
+                // 更新设备数据
+                device.channel = newVal;
+                addLog(`📺 ${device.name} 频道 → ${newVal}`);
+                sendToBackend(deviceId, 'set_channel', newVal);
+                saveToStorage();
 
+                // 刷新UI
+                renderUI();
+                renderScene();
+
+                // ===== 强制立即切换底层图片（只加这一段） =====
+                const img = document.getElementById('sceneImage');
+                if (img && currentRoom === '客厅') {
+                    const config = sceneConfig[currentRoom];
+                    if (config && config.image) {
+                        const chSuffix = (newVal >= 1 && newVal <= 3) ? newVal : 1;
+                        img.src = config.image.replace('.jpg', `_ch${chSuffix}.jpg`);
+                    }
+                }
+            }
         function setTimerAndSend(deviceId, minutes) {
             const allDevs = getAllDevicesList();
             const device = allDevs.find(d => d.id === deviceId);
